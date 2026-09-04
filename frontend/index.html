@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ShopStack | Product Details</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">ShopStack</div>
+
+        <button class="cart-button" onclick="scrollToCart()">
+            🛒 Cart (<span id="cart-count">0</span>)
+        </button>
+    </header>
+
+
+    <!-- Product Detail Section -->
+    <main>
+
+        <section class="product-container">
+
+            <!-- Product Image -->
+            <div class="product-image">
+                <img 
+                    src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
+                    alt="Wireless Headphones"
+                >
+            </div>
+
+
+            <!-- Product Information -->
+            <div class="product-details">
+
+                <p class="category">Electronics</p>
+
+                <h1>Premium Wireless Headphones</h1>
+
+                <p class="description">
+                    Experience high-quality sound with comfortable
+                    wireless headphones designed for everyday use.
+                </p>
+
+
+                <div class="rating">
+                    ⭐⭐⭐⭐⭐
+                    <span>(4.8)</span>
+                </div>
+
+
+                <h2>₹2,999</h2>
+
+                <p class="old-price">₹4,999</p>
+
+
+                <!-- Specifications -->
+                <div class="specifications">
+
+                    <h3>Specifications</h3>
+
+                    <ul>
+                        <li>Bluetooth 5.3 Connectivity</li>
+                        <li>Active Noise Cancellation</li>
+                        <li>30 Hours Battery Life</li>
+                        <li>Fast Charging Support</li>
+                    </ul>
+
+                </div>
+
+
+                <!-- Quantity -->
+                <div class="quantity-section">
+
+                    <h3>Quantity</h3>
+
+                    <div class="quantity-controls">
+
+                        <button onclick="changeProductQuantity(-1)">−</button>
+
+                        <span id="product-quantity">1</span>
+
+                        <button onclick="changeProductQuantity(1)">+</button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Add To Cart -->
+                <button class="add-cart-btn" onclick="addToCart()">
+                    Add to Cart
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- Shopping Cart -->
+        <section class="cart-section" id="cart">
+
+            <h1>Shopping Cart</h1>
+
+            <div id="cart-items">
+
+                <p class="empty-cart">
+                    Your cart is empty.
+                </p>
+
+            </div>
+
+
+            <!-- Cart Summary -->
+            <div class="cart-summary">
+
+                <div>
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+
+                <div>
+                    <span>Shipping</span>
+                    <span id="shipping">₹0</span>
+                </div>
+
+                <hr>
+
+                <div class="total">
+                    <span>Total</span>
+                    <span id="total">₹0</span>
+                </div>
+
+
+                <button class="checkout-btn" onclick="checkout()">
+                    Proceed to Checkout
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
