@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, ChevronDown } from "lucide-react";
-import { useCategories } from "../context/CategoryContext";
+import { useCategories } from "../../context/CategoryContext";
 
 const FIXED_LINKS = [
   { label: "Home", path: "/" },

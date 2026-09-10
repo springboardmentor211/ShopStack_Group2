@@ -1,7 +1,7 @@
 import React from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import CategoryNavbar from "../components/CategoryNavbar";
+import Navbar from "../features/customer/components/layout/Navbar";
+import Footer from "../features/customer/components/layout/Footer";
+import CategoryNavbar from "../features/customer/components/layout/CategoryNavbar";
 
 export default function Home() {
   return (

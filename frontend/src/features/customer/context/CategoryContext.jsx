@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import api from "../services/api";
+import { getCategories } from "../services/categoryService";
 
 const CategoryContext = createContext({ categories: [], loading: true, error: false });
 
@@ -9,9 +9,8 @@ export function CategoryProvider({ children }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    api
-      .get("/categories")
-      .then((res) => setCategories(res.data.categories))
+    getCategories()
+      .then((data) => setCategories(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
