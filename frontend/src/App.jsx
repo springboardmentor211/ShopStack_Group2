@@ -3,7 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store/store.js';
 import { AuthProvider } from './context/AuthContext';
-import { CategoryProvider } from './context/CategoryContext';
+import { CategoryProvider } from './features/customer/context/CategoryContext';
+import Home from './pages/Home.jsx';
 import HomePage from './features/customer/pages/HomePage.jsx';
 import SearchResultsPage from './features/customer/pages/SearchResultsPage.jsx';
 import WishlistPage from './features/customer/pages/WishlistPage.jsx';
@@ -17,7 +18,8 @@ function App() {
       <AuthProvider>
         <CategoryProvider>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/cart" element={<CartPage />} />

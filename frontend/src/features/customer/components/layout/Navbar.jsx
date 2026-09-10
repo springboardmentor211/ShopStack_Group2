@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Search, Heart, ShoppingCart, ChevronDown, User, Menu, X } from "lucide-react";
-import { AuthContext } from "../context/AuthContext";
-import { useCategories } from "../context/CategoryContext";
-import api from "../services/api";
-import logo from "../assets/images/logo.png";
-import { headerGradient } from "../styles/theme";
+import { useSelector } from "react-redux";
+import { Search, Heart, ShoppingCart, ChevronDown, User, Menu, X, Package, LogOut } from "lucide-react";
+import { AuthContext } from "../../../../context/AuthContext";
+import { useCategories } from "../../context/CategoryContext";
+import api from "../../../../services/api";
+import logo from "../../../../assets/images/logo.png";
+import { headerGradient } from "../../../../styles/theme";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -18,8 +19,9 @@ export default function Navbar() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [searchQuery, setSearchQuery] = useState("");
-  const [cartCount, setCartCount] = useState(0);
-  const [wishlistCount, setWishlistCount] = useState(0);
+
+  const cartCount = useSelector((state) => state.cart.items.length);
+  const wishlistCount = useSelector((state) => state.wishlist.items.length);
 
   const categoryDropdownRef = useRef(null);
   const accountMenuRef = useRef(null);
@@ -40,20 +42,6 @@ export default function Navbar() {
 
   const isLoggedIn = !!user;
   const categoryOptions = ["All Categories", ...categories.map((c) => c.name)];
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      api
-        .get("/cart/count")
-        .then((res) => setCartCount(res.data.count))
-        .catch(() => setCartCount(0));
-
-      api
-        .get("/wishlist/count")
-        .then((res) => setWishlistCount(res.data.count))
-        .catch(() => setWishlistCount(0));
-    }
-  }, [isLoggedIn]);
 
   const handleLogout = async () => {
     try {
@@ -135,21 +123,21 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-9 shrink-0 ml-auto">
-            <button className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-blue-700">
+            <Link to="/wishlist" className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-blue-700">
               <Heart size={20} />
               <span className="hidden lg:inline">Wishlist</span>
               {wishlistCount > 0 && (
                 <span className="ml-0.5 text-xs bg-blue-700 text-white rounded-full px-1.5">{wishlistCount}</span>
               )}
-            </button>
+            </Link>
 
-            <button className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-blue-700">
+            <Link to="/cart" className="flex items-center gap-1 text-sm font-medium text-gray-800 hover:text-blue-700">
               <ShoppingCart size={20} />
               <span className="hidden lg:inline">Cart</span>
               {cartCount > 0 && (
                 <span className="ml-0.5 text-xs bg-blue-700 text-white rounded-full px-1.5">{cartCount}</span>
               )}
-            </button>
+            </Link>
 
             {isLoggedIn ? (
               <div className="relative" ref={accountMenuRef}>
@@ -161,18 +149,26 @@ export default function Navbar() {
                   Hi, {user?.name || "User"} <ChevronDown size={14} />
                 </button>
                 {showAccountMenu && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-100 py-1 text-sm">
-                    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-50" onClick={() => setShowAccountMenu(false)}>
-                      My Profile
+                  <div className="absolute right-0 mt-2 w-44 bg-white rounded-md shadow-lg border border-gray-100 p-1 text-sm">
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 text-gray-800 transition-colors"
+                      onClick={() => setShowAccountMenu(false)}
+                    >
+                      <User size={16} /> My Profile
                     </Link>
-                    <Link to="/orders" className="block px-4 py-2 hover:bg-gray-50" onClick={() => setShowAccountMenu(false)}>
-                      My Orders
+                    <Link
+                      to="/orders"
+                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 text-gray-800 transition-colors"
+                      onClick={() => setShowAccountMenu(false)}
+                    >
+                      <Package size={16} /> My Orders
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50"
+                      className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      Logout
+                      <LogOut size={16} /> Logout
                     </button>
                   </div>
                 )}
@@ -249,29 +245,50 @@ export default function Navbar() {
               </div>
             )}
 
-            <button className="flex items-center gap-2 w-full py-2 text-sm font-medium text-gray-800">
+            <Link
+              to="/wishlist"
+              className="flex items-center gap-2 w-full py-2 text-sm font-medium text-gray-800"
+              onClick={() => setShowMobileMenu(false)}
+            >
               <Heart size={20} /> Wishlist
               {wishlistCount > 0 && (
                 <span className="ml-1 text-xs bg-blue-700 text-white rounded-full px-1.5">{wishlistCount}</span>
               )}
-            </button>
+            </Link>
 
-            <button className="flex items-center gap-2 w-full py-2 text-sm font-medium text-gray-800">
+            <Link
+              to="/cart"
+              className="flex items-center gap-2 w-full py-2 text-sm font-medium text-gray-800"
+              onClick={() => setShowMobileMenu(false)}
+            >
               <ShoppingCart size={20} /> Cart
               {cartCount > 0 && (
                 <span className="ml-1 text-xs bg-blue-700 text-white rounded-full px-1.5">{cartCount}</span>
               )}
-            </button>
+            </Link>
 
             {isLoggedIn ? (
               <>
                 <p className="flex items-center gap-2 py-2 text-sm font-medium text-gray-800">
                   <User size={18} /> Hi, {user?.name || "User"}
                 </p>
-                <Link to="/profile" className="block py-2 text-sm font-medium text-gray-800">My Profile</Link>
-                <Link to="/orders" className="block py-2 text-sm font-medium text-gray-800">My Orders</Link>
-                <button onClick={handleLogout} className="block w-full text-left py-2 text-sm font-medium text-red-600">
-                  Logout
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 py-2 px-2 rounded-md text-sm font-medium text-gray-800 hover:bg-blue-50 transition-colors"
+                >
+                  <User size={16} /> My Profile
+                </Link>
+                <Link
+                  to="/orders"
+                  className="flex items-center gap-2 py-2 px-2 rounded-md text-sm font-medium text-gray-800 hover:bg-blue-50 transition-colors"
+                >
+                  <Package size={16} /> My Orders
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 w-full text-left py-2 px-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut size={16} /> Logout
                 </button>
               </>
             ) : (

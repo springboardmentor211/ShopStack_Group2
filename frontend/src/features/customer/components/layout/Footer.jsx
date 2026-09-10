@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, CreditCard } from "lucide-react";
-import { headerGradient } from "../styles/theme";
+import { headerGradient } from "../../../../styles/theme";
 
 const SHOP_LINKS = [
   { label: "New arrivals", path: "/new-arrivals" },
