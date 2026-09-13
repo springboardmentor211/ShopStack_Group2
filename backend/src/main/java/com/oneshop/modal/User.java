@@ -32,7 +32,7 @@ public class User {
 
     private String fullName;
 
-    private String phoneNumber;
+    
 
     private USER_ROLE role = USER_ROLE.ROLE_CUSTOMER;
 

@@ -1,3 +1,4 @@
+
 package com.oneshop.modal;
 
 import jakarta.persistence.Entity;
