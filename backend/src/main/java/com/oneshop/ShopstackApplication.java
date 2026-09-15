@@ -11,6 +11,4 @@ public class ShopstackApplication {
 		SpringApplication.run(ShopstackApplication.class, args);
 
 	}
-	}
-
-	
+}
