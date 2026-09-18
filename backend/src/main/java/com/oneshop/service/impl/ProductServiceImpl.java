@@ -1,10 +1,10 @@
-package com.oneshop.service;
+package com.oneshop.service.impl;
 
+import com.oneshop.service.ProductService;
 import com.oneshop.modal.Product;
 import com.oneshop.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {

@@ -1,17 +1,20 @@
-package com.oneshop.service;
+package com.oneshop.service.impl;
 
 import com.oneshop.modal.Address;
 import com.oneshop.repository.AddressRepository;
 import com.oneshop.service.AddressService;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor 
 public class AddressServiceImpl implements AddressService {
 
-    @Autowired
+    
     private AddressRepository addressRepository;
 
     @Override

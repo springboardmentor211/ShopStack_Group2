@@ -1,17 +1,18 @@
-package com.oneshop.service;
+package com.oneshop.service.impl;
 
 import com.oneshop.modal.Coupon;
 import com.oneshop.repository.CouponRepository;
 import com.oneshop.service.CouponService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@ReadingConverter 
 public class CouponServiceImpl implements CouponService {
 
-    @Autowired
+    
     private CouponRepository couponRepository;
 
     @Override

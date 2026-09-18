@@ -1,16 +1,19 @@
-package com.oneshop.service;
+package com.oneshop.service.impl;
+
+import com.oneshop.service.UserService;
+
+import lombok.RequiredArgsConstructor;
 
 import com.oneshop.modal.User;
 import com.oneshop.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor 
 public class UserServiceImpl implements UserService {
-
-    @Autowired
+    
     private UserRepository userRepository;
 
     @Override

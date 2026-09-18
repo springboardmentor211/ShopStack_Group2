@@ -2,17 +2,19 @@ package com.oneshop.controller;
 
 import com.oneshop.modal.Coupon;
 import com.oneshop.repository.CouponRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor 
 @RequestMapping("/api/coupons")
 public class CouponController {
 
-    @Autowired
     private CouponRepository couponRepository;
 
     @PostMapping

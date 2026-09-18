@@ -2,17 +2,19 @@ package com.oneshop.controller;
 
 import com.oneshop.modal.Product;
 import com.oneshop.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor 
 @RequestMapping("/api/products")
 public class ProductController {
 
-    @Autowired
     private ProductService productService;
 
     @GetMapping
