@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap');
+
+.wh-root {
+  font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.wh-editorial {
+  font-family: 'Libre Baskerville', Georgia, serif;
+}
+
+.wh-card {
+  border: 1px solid #e8dfc8;
+  box-shadow: 0 14px 34px rgba(85, 62, 32, 0.08);
+}
+
+.wh-reveal {
+  animation: wh-lift 0.45s ease both;
+}
+
+@keyframes wh-lift {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wh-reveal {
+    animation: none;
+  }
+}
