@@ -4,6 +4,8 @@ import com.shopstack.auth.dto.AuthResponse;
 import com.shopstack.auth.dto.LoginRequest;
 import com.shopstack.auth.dto.RegisterRequest;
 import com.shopstack.auth.service.AuthService;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +19,7 @@ public class AuthController {
 
     // POST: Create Account / Sign Up
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
