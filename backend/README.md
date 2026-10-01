@@ -415,11 +415,7 @@ backend/
 
 ### Known gaps
 
-- `OrderStatus` (`common/enums`) is missing `CANCELLED` and
-  `OUT_FOR_DELIVERY` relative to the shared status enum in the API contracts.
-  Needed before the customer-side Order Desk / Pickup / Packup work lands.
-- `docs/` is git-ignored (`.gitignore` line 37), so the API contracts and the
-  implementation plan are untracked and do not reach teammates via a clone.
-- `.gitignore` lists `.env` twice (lines 3 and 38) — harmless, worth tidying.
 - The `local` profile enables the dev-token endpoint. Never activate that
   profile in a deployed environment.
+- There is no Testcontainers setup, so the integration tests are destructive
+  against a developer's real database. A disposable Postgres would make CI safe.

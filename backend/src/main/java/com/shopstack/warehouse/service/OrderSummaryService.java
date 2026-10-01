@@ -2,7 +2,7 @@ package com.shopstack.warehouse.service;
 
 import com.shopstack.common.enums.OrderStatus;
 import com.shopstack.warehouse.dto.response.OrderSummaryDto;
-import com.shopstack.warehouse.port.OrderSummaryPort;
+import com.shopstack.warehouse.port.OrderFulfillmentPort;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -10,16 +10,16 @@ import java.util.Map;
 @Service
 public class OrderSummaryService {
 
-    private final OrderSummaryPort orderSummaryPort;
+    private final OrderFulfillmentPort orderFulfillmentPort;
 
-    public OrderSummaryService(OrderSummaryPort orderSummaryPort) {
-        this.orderSummaryPort = orderSummaryPort;
+    public OrderSummaryService(OrderFulfillmentPort orderFulfillmentPort) {
+        this.orderFulfillmentPort = orderFulfillmentPort;
     }
 
     public OrderSummaryDto getSummary(String warehouseId) {
-        Map<OrderStatus, Integer> counts = orderSummaryPort.countByWarehouseAndStatus(warehouseId);
+        Map<OrderStatus, Integer> counts = orderFulfillmentPort.countByStatus(warehouseId);
         return new OrderSummaryDto(
-                orderSummaryPort.countDueToday(warehouseId),
+                orderFulfillmentPort.countDueToday(warehouseId),
                 new OrderSummaryDto.PipelineDto(
                         count(counts, OrderStatus.PENDING),
                         count(counts, OrderStatus.CONFIRMED),
