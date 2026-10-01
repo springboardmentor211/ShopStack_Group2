@@ -127,9 +127,11 @@ unknown shipment **404**. All errors use `{ "message": "..." }`.
 | V2 | `V2__create_warehouse_tables.sql` | `warehouses`, `warehouse_bins`, `inbound_shipments`, `inventory_rows`, `stock_movements` |
 | V3 | `V3__seed_warehouse_bins.sql` | dev seed: `WH-NORTH` / `WH-SOUTH`, bins, two pending ASNs |
 
-> If `flyway_schema_history` reports V3 applied but the seed ASNs are missing,
-> re-run the V3 INSERT statements manually — Flyway will not re-execute an
-> already-recorded version.
+> The integration tests run against this same local database and call
+> `deleteAllInBatch()` on the warehouse tables, so running `.\mvnw.cmd test`
+> deletes the seeded ASNs. Re-run the V3 INSERT statements above (or the smoke
+> test below) to restore them — Flyway will not re-execute an already-recorded
+> version.
 
 ### Smoke test (verified working)
 
