@@ -47,6 +47,8 @@ public class InventoryService {
 
     private InventoryRowDto toDto(InventoryRow row) {
         ProductCataloguePort.ProductInfo product = productCataloguePort.findBySku(row.getSku());
+        String vendorId = product == null ? null : product.vendorId();
+        VendorPort.VendorInfo vendor = vendorId == null ? null : vendorPort.findById(vendorId);
         return new InventoryRowDto(
                 row.getWarehouseId(),
                 row.getSku(),
@@ -56,10 +58,17 @@ public class InventoryService {
                 product == null ? null : product.name(),
                 product == null ? null : product.variant(),
                 product == null ? null : product.category(),
-                null,
-                null,
+                vendorId,
+                vendorName(vendor, vendorId),
                 product == null ? null : product.threshold(),
                 product == null ? null : product.imageUrl()
         );
+    }
+
+    private String vendorName(VendorPort.VendorInfo vendor, String vendorId) {
+        if (vendor != null && vendor.name() != null) {
+            return vendor.name();
+        }
+        return vendorId;
     }
 }
