@@ -33,5 +33,6 @@ public class Product {
 
     private String imageUrl;
 
+    @Builder.Default
     private boolean active = true;
 }

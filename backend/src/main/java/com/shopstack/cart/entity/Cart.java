@@ -30,5 +30,6 @@ public class Cart {
     private List<CartItem> items = new ArrayList<>();
 
     @Column(nullable = false)
+    @Builder.Default
     private BigDecimal totalPrice = BigDecimal.ZERO;
 }
