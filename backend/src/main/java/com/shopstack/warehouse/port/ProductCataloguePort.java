@@ -8,5 +8,10 @@ public interface ProductCataloguePort {
 
     ProductInfo findBySku(String sku);
 
-    record ProductInfo(String name, String variant, String category, String imageUrl, Integer threshold) {}
+    /**
+     * {@code vendorId} lets the warehouse module resolve the vendor display name
+     * through {@link VendorPort} without importing the product module.
+     */
+    record ProductInfo(String name, String variant, String category, String vendorId,
+                       Integer threshold, String imageUrl) {}
 }
