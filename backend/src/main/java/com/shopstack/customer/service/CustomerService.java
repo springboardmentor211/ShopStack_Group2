@@ -13,7 +13,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    // Profile Details Get Karna
+    // Profile Details Get
     public CustomerResponseDTO getCustomerProfile(Long id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));

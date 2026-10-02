@@ -30,4 +30,12 @@ public class Customer {
     private String city;
     private String pincode; 
     private String role;
+
+    public String getPincode() {
+    return pincode;
+}
+
+public void setPincode(String pincode) {
+    this.pincode = pincode;
+}
 }

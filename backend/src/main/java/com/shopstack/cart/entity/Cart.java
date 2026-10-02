@@ -32,4 +32,14 @@ public class Cart {
     @Column(nullable = false)
     @Builder.Default
     private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    public List<CartItem> getItems() {
+    return items;
+}
+
+public void setItems(List<CartItem> items) {
+    this.items = items;
+}
+
+    
 }
