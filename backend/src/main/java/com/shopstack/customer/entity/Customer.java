@@ -28,5 +28,6 @@ public class Customer {
     private String phone;
     private String address;
     private String city;
-    private String pincode; // Optional: UI profile se input aane par save ho jayega
+    private String pincode; 
+    private String role;
 }

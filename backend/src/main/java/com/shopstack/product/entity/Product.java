@@ -35,4 +35,12 @@ public class Product {
 
     @Builder.Default
     private boolean active = true;
+
+    @Builder.Default
+    @Column(name = "average_rating")
+    private Double averageRating = 0.0;
+
+    @Builder.Default
+    @Column(name = "total_reviews")
+    private Integer totalReviews = 0;
 }
