@@ -112,13 +112,18 @@ class FulfillmentTestSupport {
     }
 
     void stock(String sku, String bin, int qty) {
-        inventory.save(InventoryRow.builder()
-                .warehouseId(WAREHOUSE)
-                .sku(sku)
-                .zone(ZONE)
-                .bin(bin)
-                .qty(qty)
-                .build());
+        inventory.findByWarehouseIdAndSkuAndBin(WAREHOUSE, sku, bin).ifPresentOrElse(
+                row -> {
+                    row.setQty(qty);
+                    inventory.save(row);
+                },
+                () -> inventory.save(InventoryRow.builder()
+                        .warehouseId(WAREHOUSE)
+                        .sku(sku)
+                        .zone(ZONE)
+                        .bin(bin)
+                        .qty(qty)
+                        .build()));
     }
 
     List<InventoryRow> stockRows() {

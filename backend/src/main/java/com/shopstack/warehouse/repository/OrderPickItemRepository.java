@@ -14,6 +14,12 @@ import java.util.Optional;
 @Repository
 public interface OrderPickItemRepository extends JpaRepository<OrderPickItem, OrderPickItemId> {
 
+    /**
+     * Ordered by item id so the pick list renders in the same sequence on every read. Without
+     * the ORDER BY Postgres is free to return rows in physical order, which changes after a
+     * re-seed and makes the list jump around under the picker.
+     */
+    @Query("SELECT p FROM OrderPickItem p WHERE p.warehouseId = :warehouseId AND p.orderId = :orderId ORDER BY p.itemId")
     List<OrderPickItem> findByWarehouseIdAndOrderId(String warehouseId, String orderId);
 
     Optional<OrderPickItem> findByOrderIdAndItemId(String orderId, String itemId);

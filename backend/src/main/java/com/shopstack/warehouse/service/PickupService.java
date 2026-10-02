@@ -136,6 +136,11 @@ public class PickupService {
             throw new ConflictException("Order must be confirmed before picking.");
         }
 
+        // A picker may open a line straight from a deep link without reading the pick list
+        // first, so seed the rows here too — otherwise the toggle 404s on a row that simply
+        // has not been materialised yet.
+        syncPickItems(order);
+
         OrderPickItem row = pickItemRepository.findByOrderIdAndItemId(orderId, itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found on this order."));
 
