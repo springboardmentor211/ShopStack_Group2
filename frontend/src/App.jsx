@@ -5,6 +5,7 @@ import {
 	Search, Send, X,
 } from 'lucide-react'
 import { getWarehouseOrders, saveWarehouseOrders } from './warehouse/services/orderDeskService.js'
+import FulfillmentPage from './warehouse/pages/FulfillmentPage.jsx'
 import './App.css'
 
 const statuses = [
@@ -50,6 +51,7 @@ function StatusBadge({ status }) {
 
 function App() {
 	const [orders, setOrders] = useState([])
+	const [activeView, setActiveView] = useState('fulfillment')
 	const [selectedId, setSelectedId] = useState('')
 	const [activeStatus, setActiveStatus] = useState('ALL')
 	const [search, setSearch] = useState('')
@@ -119,6 +121,16 @@ function App() {
 	const statusAction = selectedOrder && nextStatus[selectedOrder.status]
 	const itemCount = selectedOrder?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
+	if (activeView === 'fulfillment') {
+		return (
+			<div className="app-shell">
+				<div className="workspace">
+					<FulfillmentPage orders={orders} onUpdateOrder={updateOrder} onOpenOrderDesk={() => setActiveView('orders')} />
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div className="app-shell">
 			<div className="workspace">
@@ -126,6 +138,7 @@ function App() {
 					<div className="page-heading">
 						<div><div className="eyebrow"><span className="live-indicator" />FULFILLMENT / CUSTOMER ORDERS</div><h1>Order desk</h1><p>Review new orders, set delivery dates, and keep each customer in the loop.</p></div>
 						<div className="demo-indicator"><span />Demo workspace</div>
+						<button className="primary-action" onClick={() => setActiveView('fulfillment')}><PackageOpen size={15} />Picking &amp; packing</button>
 					</div>
 
 					<section className="queue-toolbar" aria-label="Search and filter orders">
