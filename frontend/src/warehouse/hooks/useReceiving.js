@@ -1,11 +1,11 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchInbound, receiveShipment, selectAsn, setFilter } from '../store/slices/receivingSlice';
+import { fetchInbound, fetchBins, receiveShipment, selectAsn, setFilter } from '../store/slices/receivingSlice';
 import { useCurrentWarehouse } from './useCurrentWarehouse';
 
 export function useReceiving() {
   const dispatch = useDispatch();
   const { warehouseId } = useCurrentWarehouse();
-  const { items, bins, status, error, selectedId, filters, isReceiving, receiveError } = useSelector(
+  const { items, bins, binsStatus, status, error, selectedId, filters, isReceiving, receiveError } = useSelector(
     (state) => state.warehouse.receiving
   );
   const inventoryItems = useSelector((state) => state.warehouse.inventory.items);
@@ -24,12 +24,15 @@ export function useReceiving() {
   }
 
   function reload() {
-    if (warehouseId) dispatch(fetchInbound(warehouseId));
+    if (!warehouseId) return;
+    dispatch(fetchInbound(warehouseId));
+    dispatch(fetchBins(warehouseId));
   }
 
   return {
     items,
     bins,
+    binsStatus,
     status,
     error,
     selectedId,

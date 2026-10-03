@@ -1,13 +1,13 @@
 import { USE_MOCK } from './config';
 import { apiRequest, jsonPost } from './http';
 import { clone, wait } from './mockUtils';
+import { addMockMovement } from './movementService';
 import { mockInbound } from '../mocks/inboundMock';
 import { mockInventory } from '../mocks/inventoryMock';
 import { mockCatalog } from '../mocks/catalogMock';
 import { mockBins } from '../mocks/binsMock';
 import { mockWarehouses } from '../mocks/authMock';
 import { vendorById } from '../mocks/vendorsMock';
-import { recordMockMovement } from './movementService';
 
 const toRow = (asn) => {
   const vendor = vendorById(asn.vendorId);
@@ -69,12 +69,9 @@ export async function receiveAsn(warehouseId, id, bin) {
     }
     row.qty += asn.qty;
 
-    for (let i = mockInventory.length - 1; i >= 0; i -= 1) {
-      const other = mockInventory[i];
-      if (other.warehouseId === warehouseId && other.sku === asn.sku && other.bin !== bin && other.qty === 0) {
-        mockInventory.splice(i, 1);
-      }
-    }
+    mockInventory
+      .filter((i) => i.warehouseId === warehouseId && i.sku === asn.sku && i.bin !== bin && i.qty === 0)
+      .forEach((i) => mockInventory.splice(mockInventory.indexOf(i), 1));
 
     const owner = mockWarehouses.find((w) => w.id === warehouseId)?.ownerName || 'Warehouse owner';
     const vendor = vendorById(asn.vendorId);
@@ -83,7 +80,7 @@ export async function receiveAsn(warehouseId, id, bin) {
     asn.bin = bin;
     asn.receivedAt = new Date().toISOString();
 
-    recordMockMovement({
+    addMockMovement({
       warehouseId,
       sku: asn.sku,
       type: 'Putaway',

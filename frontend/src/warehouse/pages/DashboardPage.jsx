@@ -3,7 +3,14 @@ import { useDashboard } from '../hooks/useDashboard';
 import { useWarehouseJump } from '../hooks/useWarehouseJump';
 import { ORDER_STAGES } from '../store/selectors/warehouseSelectors';
 import Thumb from '../components/layout/Thumb';
+import LoadNotice from '../components/common/LoadNotice';
 import { formatClock } from '../utils/format';
+
+const STOCK_PILL = {
+  'In Stock': 'bg-[#EAF4EC] text-[#337454]',
+  'Low Stock': 'bg-[#F6EBDD] text-[#8F6739]',
+  'Out of Stock': 'bg-[#FBE9E7] text-[#B5423B]',
+};
 
 const STAGE_LABEL = {
   pending: 'Pending',
@@ -16,11 +23,6 @@ const STAGE_LABEL = {
 };
 
 const GREEN_STAGES = ['shipped', 'out_for_delivery', 'delivered'];
-
-const STOCK_PILL = {
-  'Out of Stock': 'bg-[#FBE9E7] text-[#B5423B]',
-  'Low Stock': 'bg-[#F6EBDD] text-[#8F6739]',
-};
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -72,7 +74,7 @@ function StockRow({ item, status, onOpen }) {
       className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#E8DFC8] bg-white p-3 text-left hover:bg-[#fdfaf3]"
     >
       <div className="flex min-w-0 items-center gap-3">
-        <Thumb category={item.category} size="sm" sku={item.sku} imageUrl={item.imageUrl} />
+        <Thumb size="sm" sku={item.sku} imageUrl={item.imageUrl} />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-[#1A1A1A]">{item.name}</p>
           <p className="text-xs text-[#746D62]">
@@ -93,6 +95,41 @@ export default function DashboardPage() {
   const jump = useWarehouseJump();
   const dash = (value) => (d.loading ? '—' : value);
 
+  const queueRows = [
+    {
+      key: 'confirm',
+      icon: Package,
+      count: d.queue.ordersToConfirm,
+      text: 'orders waiting to be confirmed',
+      hint: 'Set the delivery date and confirm',
+      onOpen: () => jump.toOrders('pending'),
+    },
+    {
+      key: 'allocate',
+      icon: ArrowDownToLine,
+      count: d.queue.shipmentsToAllocate,
+      text: 'vendor shipments waiting to be allocated',
+      hint: 'Choose a bin and add the stock to inventory',
+      onOpen: () => jump.toReceiving(),
+    },
+    {
+      key: 'pick',
+      icon: ClipboardCheck,
+      count: d.queue.inPickOrPack,
+      text: 'orders being picked or packed',
+      hint: 'Tick items as they are collected',
+      onOpen: () => jump.toPicking('pick'),
+    },
+    {
+      key: 'carrier',
+      icon: Truck,
+      count: d.queue.awaitingCarrier,
+      text: 'packed orders waiting for a carrier',
+      hint: 'Create shipments and dispatch',
+      onOpen: () => jump.toPicking('outbound'),
+    },
+  ].filter((row) => row.count > 0);
+
   return (
     <div className="px-5 py-7 lg:px-8">
       <div className="wh-reveal flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -107,9 +144,15 @@ export default function DashboardPage() {
         </div>
         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dfcaab] bg-[#FBF4E7] px-4 py-2 text-xs font-bold text-[#8F6739]">
           <span className="h-2 w-2 rounded-full bg-[#8F6739]" />
-          {d.lastSyncedAt ? `Updated ${formatClock(d.lastSyncedAt)}` : 'Loading…'}
+          {d.loading ? 'Loading…' : d.failed ? 'Update failed' : d.lastSyncedAt ? `Updated ${formatClock(d.lastSyncedAt)}` : 'Not updated yet'}
         </div>
       </div>
+
+      {d.failed && (
+        <div className="mt-6">
+          <LoadNotice status="failed" error="Could not load the dashboard data." hasData={false} onRetry={d.reload} />
+        </div>
+      )}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
@@ -142,40 +185,17 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="wh-card mt-7 rounded-2xl bg-white p-5 sm:p-7">
-        <p className="text-xs font-bold uppercase tracking-[.18em] text-[#8F6739]">Your queue</p>
-        <h2 className="wh-editorial mt-3 text-[21px] font-bold text-[#1A1A1A]">Needs your attention</h2>
-        <div className="mt-4 divide-y divide-[#E8DFC8]">
-          <AttentionRow
-            icon={Package}
-            count={d.queue.ordersToConfirm}
-            text="orders waiting to be confirmed"
-            hint="Set the delivery date and confirm"
-            onOpen={() => jump.toOrders('pending')}
-          />
-          <AttentionRow
-            icon={ArrowDownToLine}
-            count={d.queue.shipmentsToAllocate}
-            text="vendor shipments waiting to be allocated"
-            hint="Choose a bin and add the stock to inventory"
-            onOpen={() => jump.toReceiving()}
-          />
-          <AttentionRow
-            icon={ClipboardCheck}
-            count={d.queue.inPickOrPack}
-            text="orders being picked or packed"
-            hint="Tick items as they are collected"
-            onOpen={() => jump.toPicking('pick')}
-          />
-          <AttentionRow
-            icon={Truck}
-            count={d.queue.awaitingCarrier}
-            text="packed orders waiting for a carrier"
-            hint="Create shipments and dispatch"
-            onOpen={() => jump.toPicking('outbound')}
-          />
+      {!d.loading && !d.failed && queueRows.length > 0 && (
+        <div className="wh-card mt-7 rounded-2xl bg-white p-5 sm:p-7">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#8F6739]">Your queue</p>
+          <h2 className="wh-editorial mt-3 text-[21px] font-bold text-[#1A1A1A]">Needs your attention</h2>
+          <div className="mt-4 divide-y divide-[#E8DFC8]">
+            {queueRows.map(({ key, ...row }) => (
+              <AttentionRow key={key} {...row} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="wh-card mt-7 rounded-2xl bg-white p-5 sm:p-7">
         <div className="flex items-center justify-between gap-3">
@@ -227,7 +247,7 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          !d.loading && (
+          !d.loading && !d.failed && d.totalInventory > 0 && (
             <p className="mt-5 rounded-xl bg-[#EAF4EC] px-4 py-3 text-sm font-semibold text-[#337454]">
               All products are stocked above their reorder threshold.
             </p>

@@ -9,16 +9,16 @@ import Thumb from '../components/layout/Thumb';
 import Pagination from '../components/common/Pagination';
 import LoadNotice from '../components/common/LoadNotice';
 
+const PAGE_SIZE = 6;
+
+const SELECT_CLASS =
+  'w-full rounded-xl border border-[#E8DFC8] bg-white px-3 py-2.5 text-sm text-[#1A1A1A] focus:border-[#8F6739] focus:outline-none focus:ring-2 focus:ring-[#8F6739]/30';
+
 const STOCK_PILL = {
   'In Stock': 'bg-[#EAF4EC] text-[#337454]',
   'Low Stock': 'bg-[#F6EBDD] text-[#8F6739]',
   'Out of Stock': 'bg-[#FBE9E7] text-[#B5423B]',
 };
-
-const PAGE_SIZE = 6;
-
-const SELECT_CLASS =
-  'w-full rounded-xl border border-[#E8DFC8] bg-white px-3 py-2.5 text-sm text-[#1A1A1A] focus:border-[#8F6739] focus:outline-none focus:ring-2 focus:ring-[#8F6739]/30';
 
 export default function InventoryPage() {
   const { items, status, error, filters, categories, zones, updateFilter, reload } = useInventory();
@@ -129,7 +129,7 @@ export default function InventoryPage() {
                     <td className="px-4 py-4 font-semibold text-[#1A1A1A]">{item.sku}</td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <Thumb category={item.category} size="sm" sku={item.sku} imageUrl={item.imageUrl} />
+                        <Thumb size="sm" sku={item.sku} imageUrl={item.imageUrl} />
                         <div>
                           <span className="block font-semibold text-[#1A1A1A]">{item.name}</span>
                           {item.variant && <span className="block text-xs text-[#746D62]">{item.variant}</span>}
@@ -165,7 +165,12 @@ export default function InventoryPage() {
           </table>
         </div>
 
-        {filtered.length === 0 && status === 'succeeded' && (
+        {status === 'succeeded' && items.length === 0 && (
+          <p className="py-8 text-center text-sm text-[#746D62]">
+            No stock in this warehouse yet. Received vendor shipments will appear here.
+          </p>
+        )}
+        {status === 'succeeded' && items.length > 0 && filtered.length === 0 && (
           <p className="py-8 text-center text-sm text-[#746D62]">No inventory items match your current filters.</p>
         )}
 

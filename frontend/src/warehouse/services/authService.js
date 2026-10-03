@@ -1,7 +1,7 @@
 import { USE_MOCK } from './config';
 import { apiRequest } from './http';
-import { mockWarehouses, CURRENT_WAREHOUSE_ID } from '../mocks/authMock';
 import { wait } from './mockUtils';
+import { mockWarehouses, CURRENT_WAREHOUSE_ID } from '../mocks/authMock';
 
 export async function getCurrentWarehouseProfile() {
   if (USE_MOCK) {

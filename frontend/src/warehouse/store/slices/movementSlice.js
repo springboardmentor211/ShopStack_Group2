@@ -1,29 +1,32 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getMovements } from '../../services/movementService';
-import { scoped } from '../guard';
+import { resetWarehouse, resetWarehouseData } from '../actions';
 
-export const fetchMovements = createAsyncThunk('warehouse/movement/fetch', scoped(getMovements));
+export const fetchMovements = createAsyncThunk('warehouse/movement/fetch', getMovements);
+
+const initialState = {
+  items: [],
+  status: 'idle',
+  error: null,
+};
 
 const movementSlice = createSlice({
   name: 'warehouse/movement',
-  initialState: {
-    items: [],
-    status: 'idle',
-    error: null,
-  },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(resetWarehouse, () => initialState)
+      .addCase(resetWarehouseData, () => initialState)
       .addCase(fetchMovements.pending, (state) => {
-        state.status = 'loading';
+        if (state.status !== 'succeeded') state.status = 'loading';
         state.error = null;
       })
       .addCase(fetchMovements.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items = action.payload;
+        state.items = [...(action.payload || [])].sort((a, b) => (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0));
       })
       .addCase(fetchMovements.rejected, (state, action) => {
-        if (action.payload?.stale) return;
         state.status = 'failed';
         state.error = action.error.message || 'Could not load stock movements.';
       });
