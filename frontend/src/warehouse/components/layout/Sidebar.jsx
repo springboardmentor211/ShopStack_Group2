@@ -33,8 +33,8 @@ export default function Sidebar({ counts = {}, ownerName = '', role = '', isOpen
       {isOpen && <div onClick={onClose} className="fixed inset-0 z-40 bg-black/30 lg:hidden" />}
 
       <aside
-        className={`fixed z-50 flex h-screen w-[248px] flex-shrink-0 flex-col border-r border-[#E8DFC8] bg-white transition-transform duration-200 lg:sticky lg:top-0 lg:z-0 lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed z-50 flex h-screen w-[248px] flex-shrink-0 flex-col border-r border-[#E8DFC8] bg-white transition-[transform,visibility] duration-200 lg:visible lg:sticky lg:top-0 lg:z-0 lg:translate-x-0 ${
+          isOpen ? 'visible translate-x-0' : 'invisible -translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between gap-3 border-b border-[#E8DFC8] px-5 py-5">
@@ -47,7 +47,7 @@ export default function Sidebar({ counts = {}, ownerName = '', role = '', isOpen
               <p className="text-[11px] text-[#746D62]">Warehouse Console</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close menu" className="lg:hidden">
+          <button type="button" onClick={onClose} className="lg:hidden">
             <X className="h-4 w-4 text-[#746D62]" />
           </button>
         </div>

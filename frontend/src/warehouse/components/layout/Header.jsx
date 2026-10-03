@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu, Search, User } from 'lucide-react';
 import { setFilter as setInventoryFilter } from '../../store/slices/inventorySlice';
 import { resetWarehouse } from '../../store/actions';
+import { runLogout } from '../../services/http';
 import { selectNotifications } from '../../store/selectors/warehouseSelectors';
 import { useWarehouseJump } from '../../hooks/useWarehouseJump';
 
@@ -29,11 +30,9 @@ export default function Header({ warehouse, onOpenSidebar }) {
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [loggedOutNote, setLoggedOutNote] = useState(false);
 
   const notifRef = useRef(null);
   const accountRef = useRef(null);
-  const logoutTimer = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -41,10 +40,7 @@ export default function Header({ warehouse, onOpenSidebar }) {
       if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      clearTimeout(logoutTimer.current);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   function handleSearchChange(value) {
@@ -58,12 +54,10 @@ export default function Header({ warehouse, onOpenSidebar }) {
   }
 
   function handleLogout() {
+    runLogout();
     dispatch(resetWarehouse());
-    setLoggedOutNote(true);
-    logoutTimer.current = setTimeout(() => {
-      setLoggedOutNote(false);
-      setAccountOpen(false);
-    }, 1400);
+    setAccountOpen(false);
+    navigate('/');
   }
 
   const path = location.pathname.replace(/\/+$/, '') || '/warehouse';
@@ -76,7 +70,6 @@ export default function Header({ warehouse, onOpenSidebar }) {
           <button
             type="button"
             onClick={onOpenSidebar}
-            aria-label="Open menu"
             className="rounded-xl border border-[#E8DFC8] bg-white p-2.5 text-[#8F6739] lg:hidden"
           >
             <Menu className="h-4 w-4" />
@@ -87,7 +80,7 @@ export default function Header({ warehouse, onOpenSidebar }) {
           </div>
         </div>
 
-        <div className="hidden justify-center sm:flex">
+        <div className="order-last col-span-3 flex justify-center sm:order-none sm:col-span-1">
           <div className="relative w-full max-w-[520px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F6739]" />
             <input
@@ -108,8 +101,6 @@ export default function Header({ warehouse, onOpenSidebar }) {
                 setNotifOpen((v) => !v);
                 setAccountOpen(false);
               }}
-              aria-label="Notifications"
-              aria-expanded={notifOpen}
               className="rounded-full border border-[#E8DFC8] bg-white p-2.5 text-[#8F6739] shadow-sm"
             >
               <Bell className="h-4 w-4" />
@@ -149,31 +140,23 @@ export default function Header({ warehouse, onOpenSidebar }) {
                 setAccountOpen((v) => !v);
                 setNotifOpen(false);
               }}
-              aria-label="Account"
-              aria-expanded={accountOpen}
               className="rounded-full bg-[#8F6739] p-2.5 text-white shadow-sm"
             >
               <User className="h-4 w-4" />
             </button>
             {accountOpen && (
               <div className="absolute right-0 top-12 z-40 w-56 rounded-2xl border border-[#E8DFC8] bg-white p-4 shadow-[0_14px_34px_rgba(85,62,32,.18)]">
-                {loggedOutNote ? (
-                  <p className="text-sm font-semibold text-[#337454]">Logged out.</p>
-                ) : (
-                  <>
-                    <p className="text-sm font-semibold text-[#1A1A1A]">{warehouse?.ownerName || 'Warehouse owner'}</p>
-                    <p className="mt-1 text-xs text-[#746D62]">{warehouse?.role || ''}</p>
-                    <div className="mt-3 space-y-1 border-t border-[#E8DFC8] pt-3">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-[#B5423B] hover:bg-[#FBE9E7]"
-                      >
-                        Log out
-                      </button>
-                    </div>
-                  </>
-                )}
+                <p className="text-sm font-semibold text-[#1A1A1A]">{warehouse?.ownerName || 'Warehouse owner'}</p>
+                <p className="mt-1 text-xs text-[#746D62]">{warehouse?.role || ''}</p>
+                <div className="mt-3 space-y-1 border-t border-[#E8DFC8] pt-3">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-[#B5423B] hover:bg-[#FBE9E7]"
+                  >
+                    Log out
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -9,6 +9,9 @@ import Pagination from '../components/common/Pagination';
 
 const PAGE_SIZE = 5;
 
+const FIELD_CLASS =
+  'w-full rounded-xl border border-[#E8DFC8] bg-white px-3 py-2.5 text-sm text-[#1A1A1A] focus:border-[#8F6739] focus:outline-none focus:ring-2 focus:ring-[#8F6739]/30';
+
 const STATUS_LABEL = { pending: 'Pending', received: 'In inventory' };
 
 const STATUS_PILL = {
@@ -17,9 +20,6 @@ const STATUS_PILL = {
 };
 
 const STATUS_STEPS = ['Pending', 'In inventory'];
-
-const FIELD_CLASS =
-  'w-full rounded-xl border border-[#E8DFC8] bg-white px-3 py-2.5 text-sm text-[#1A1A1A] focus:border-[#8F6739] focus:outline-none focus:ring-2 focus:ring-[#8F6739]/30';
 
 function Stepper({ current }) {
   return (
@@ -65,6 +65,7 @@ export default function ReceivingPage() {
   const {
     items,
     bins,
+    binsStatus,
     status,
     error,
     selectedId,
@@ -127,6 +128,8 @@ export default function ReceivingPage() {
   }, [stockRows]);
 
   const currentQty = stockRows.reduce((sum, r) => sum + r.qty, 0);
+  const noBins = binsStatus === 'succeeded' && Object.keys(bins).length === 0;
+  const binsFailed = binsStatus === 'failed';
 
   useEffect(() => {
     setBin(suggestedBin);
@@ -137,7 +140,7 @@ export default function ReceivingPage() {
     const expectedQty = currentQty + selected.qty;
     const ok = await receive(selected.id, bin);
     if (ok) push(`${product?.name || selected.sku} now has ${expectedQty.toLocaleString('en-IN')} units available.`);
-    else push('Could not allocate this shipment. Please try again.', 'warn');
+    else push('Could not allocate this shipment.', 'warn');
   }
 
   return (
@@ -190,7 +193,7 @@ export default function ReceivingPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <Thumb category={p?.category} size="md" sku={a.sku} imageUrl={p?.imageUrl} />
+                    <Thumb size="md" sku={a.sku} imageUrl={p?.imageUrl} />
                     <div>
                       <p className="text-sm font-semibold text-[#1A1A1A]">{a.vendor}</p>
                       <p className="mt-1 text-xs text-[#746D62]">
@@ -205,7 +208,12 @@ export default function ReceivingPage() {
               </button>
             );
           })}
-          {filteredItems.length === 0 && status === 'succeeded' && (
+          {status === 'succeeded' && items.length === 0 && (
+            <p className="py-8 text-center text-sm text-[#746D62]">
+              No vendor shipments yet. They will appear here when a vendor sends stock to this warehouse.
+            </p>
+          )}
+          {status === 'succeeded' && items.length > 0 && filteredItems.length === 0 && (
             <p className="py-8 text-center text-sm text-[#746D62]">No shipments match your search.</p>
           )}
           </div>
@@ -215,13 +223,13 @@ export default function ReceivingPage() {
         <div className="xl:sticky xl:top-24 xl:max-h-[calc(100vh-140px)] xl:self-start xl:overflow-y-auto">
           {!selected ? (
             <div className="wh-card rounded-2xl bg-white p-5 text-sm text-[#746D62] sm:p-6">
-              Select a shipment to review it.
+              {items.length === 0 ? 'Shipment details will appear here once a vendor sends stock.' : 'Select a shipment to review it.'}
             </div>
           ) : (
             <div className="wh-card rounded-2xl bg-white p-5 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-center gap-4">
-                  <Thumb category={product?.category} size="lg" sku={selected.sku} imageUrl={product?.imageUrl} />
+                  <Thumb size="lg" sku={selected.sku} imageUrl={product?.imageUrl} />
                   <div>
                     <p className="wh-editorial text-lg font-bold text-[#1A1A1A]">
                       {selected.id} · {selected.vendor}
@@ -266,6 +274,19 @@ export default function ReceivingPage() {
                       Stock from {selected.vendor} has arrived. Choose a bin to allocate it and add it to inventory.
                       {suggestedBin && ` This product is already stored in ${suggestedBin}, so that bin is pre-selected. You can choose another bin.`}
                     </p>
+                    {binsFailed && (
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#FBE9E7] px-4 py-2.5 text-sm font-semibold text-[#B5423B]">
+                        <span>Could not load bin locations.</span>
+                        <button type="button" onClick={reload} className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#B5423B]">
+                          Retry
+                        </button>
+                      </div>
+                    )}
+                    {noBins && (
+                      <p className="mt-3 rounded-xl bg-[#FBE9E7] px-4 py-2.5 text-sm font-semibold text-[#B5423B]">
+                        No bins are set up for this warehouse yet. Ask the admin to add bins before receiving stock.
+                      </p>
+                    )}
                     <div className="mt-4 flex flex-wrap items-end gap-3">
                       <label className="block min-w-[160px] flex-1 text-xs font-semibold text-[#746D62]">
                         Bin location

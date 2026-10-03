@@ -1,15 +1,23 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectDashboard } from '../store/selectors/warehouseSelectors';
+import { loadWarehouseData } from '../store/slices/warehouseSlice';
+import { useCurrentWarehouse } from './useCurrentWarehouse';
 
 export function useDashboard() {
+  const dispatch = useDispatch();
+  const { warehouseId } = useCurrentWarehouse();
   const data = useSelector(selectDashboard);
   const lastSyncedAt = useSelector((state) => state.warehouse.core.lastSyncedAt);
+  const loaded = useSelector((state) => state.warehouse.core.loaded);
   const inventoryStatus = useSelector((state) => state.warehouse.inventory.status);
   const summaryStatus = useSelector((state) => state.warehouse.orderSummary.status);
-  const loading =
-    inventoryStatus === 'idle' ||
-    summaryStatus === 'idle' ||
-    ((inventoryStatus === 'loading' || summaryStatus === 'loading') && !lastSyncedAt);
+  const receivingStatus = useSelector((state) => state.warehouse.receiving.status);
+  const loading = !loaded;
+  const failed = [inventoryStatus, summaryStatus, receivingStatus].includes('failed');
 
-  return { ...data, lastSyncedAt, loading };
+  function reload() {
+    if (warehouseId) dispatch(loadWarehouseData(warehouseId));
+  }
+
+  return { ...data, lastSyncedAt, loading, failed, reload };
 }

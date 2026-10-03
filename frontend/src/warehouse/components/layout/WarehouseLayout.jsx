@@ -9,6 +9,8 @@ import { selectSidebarCounts } from '../../store/selectors/warehouseSelectors';
 import { useCurrentWarehouse } from '../../hooks/useCurrentWarehouse';
 import '../../styles/warehouse.css';
 
+const REFRESH_MS = 60000;
+
 export default function WarehouseLayout() {
   const dispatch = useDispatch();
   const { warehouse, warehouseId, status, error } = useCurrentWarehouse();
@@ -23,6 +25,12 @@ export default function WarehouseLayout() {
     if (!warehouseId) return;
     dispatch(resetWarehouseData());
     dispatch(loadWarehouseData(warehouseId));
+  }, [warehouseId, dispatch]);
+
+  useEffect(() => {
+    if (!warehouseId) return undefined;
+    const timer = setInterval(() => dispatch(loadWarehouseData(warehouseId)), REFRESH_MS);
+    return () => clearInterval(timer);
   }, [warehouseId, dispatch]);
 
   return (

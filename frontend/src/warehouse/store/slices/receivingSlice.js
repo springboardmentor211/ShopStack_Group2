@@ -2,39 +2,44 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getInboundShipments, getBins, receiveAsn } from '../../services/receivingService';
 import { fetchInventory } from './inventorySlice';
 import { fetchMovements } from './movementSlice';
-import { scoped } from '../guard';
+import { resetWarehouse, resetWarehouseData } from '../actions';
 
-export const fetchInbound = createAsyncThunk('warehouse/receiving/fetch', scoped(getInboundShipments));
+export const fetchInbound = createAsyncThunk('warehouse/receiving/fetch', getInboundShipments);
 
-export const fetchBins = createAsyncThunk('warehouse/receiving/fetchBins', scoped(getBins));
+export const fetchBins = createAsyncThunk('warehouse/receiving/fetchBins', getBins);
 
 export const receiveShipment = createAsyncThunk(
   'warehouse/receiving/receive',
   async ({ warehouseId, id, bin }, { dispatch }) => {
-    const result = await receiveAsn(warehouseId, id, bin);
-    await Promise.all([
-      dispatch(fetchInbound(warehouseId)),
-      dispatch(fetchInventory(warehouseId)),
-      dispatch(fetchMovements(warehouseId)),
-    ]);
-    return result;
+    try {
+      return await receiveAsn(warehouseId, id, bin);
+    } finally {
+      await Promise.all([
+        dispatch(fetchInbound(warehouseId)),
+        dispatch(fetchInventory(warehouseId)),
+        dispatch(fetchMovements(warehouseId)),
+      ]);
+    }
   }
 );
 
 const defaultFilters = { search: '', status: 'all' };
 
+const initialState = {
+  items: [],
+  bins: {},
+  binsStatus: 'idle',
+  status: 'idle',
+  error: null,
+  selectedId: null,
+  filters: { ...defaultFilters },
+  isReceiving: false,
+  receiveError: null,
+};
+
 const receivingSlice = createSlice({
   name: 'warehouse/receiving',
-  initialState: {
-    items: [],
-    bins: {},
-    status: 'idle',
-    error: null,
-    selectedId: null,
-    filters: { ...defaultFilters },
-    isReceiving: false,
-    receiveError: null,
-  },
+  initialState,
   reducers: {
     selectAsn(state, action) {
       state.selectedId = action.payload;
@@ -55,26 +60,39 @@ const receivingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(resetWarehouse, () => initialState)
+      .addCase(resetWarehouseData, () => initialState)
       .addCase(fetchInbound.pending, (state) => {
-        state.status = 'loading';
+        if (state.status !== 'succeeded') state.status = 'loading';
         state.error = null;
       })
       .addCase(fetchInbound.fulfilled, (state, action) => {
+        const list = [...(action.payload || [])].sort((a, b) => {
+          const pendingFirst = Number(b.status === 'pending') - Number(a.status === 'pending');
+          if (pendingFirst !== 0) return pendingFirst;
+          return (Date.parse(b.arrivedAt) || 0) - (Date.parse(a.arrivedAt) || 0);
+        });
         state.status = 'succeeded';
-        state.items = action.payload;
+        state.items = list;
         if (!state.selectedId) {
-          const firstPending = action.payload.find((a) => a.status === 'pending');
-          const first = firstPending || action.payload[0];
+          const firstPending = list.find((a) => a.status === 'pending');
+          const first = firstPending || list[0];
           state.selectedId = first ? first.id : null;
         }
       })
       .addCase(fetchInbound.rejected, (state, action) => {
-        if (action.payload?.stale) return;
         state.status = 'failed';
         state.error = action.error.message || 'Could not load shipments.';
       })
+      .addCase(fetchBins.pending, (state) => {
+        if (state.binsStatus !== 'succeeded') state.binsStatus = 'loading';
+      })
       .addCase(fetchBins.fulfilled, (state, action) => {
-        state.bins = action.payload;
+        state.binsStatus = 'succeeded';
+        state.bins = action.payload || {};
+      })
+      .addCase(fetchBins.rejected, (state) => {
+        state.binsStatus = 'failed';
       })
       .addCase(receiveShipment.pending, (state) => {
         state.isReceiving = true;
