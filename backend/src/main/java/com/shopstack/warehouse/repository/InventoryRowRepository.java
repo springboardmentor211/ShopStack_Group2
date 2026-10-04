@@ -17,6 +17,8 @@ public interface InventoryRowRepository extends JpaRepository<InventoryRow, Long
 
     List<InventoryRow> findByWarehouseId(String warehouseId);
 
+    List<InventoryRow> findByWarehouseIdOrderByIdDesc(String warehouseId);
+
     Optional<InventoryRow> findByWarehouseIdAndSkuAndBin(String warehouseId, String sku, String bin);
 
     /**

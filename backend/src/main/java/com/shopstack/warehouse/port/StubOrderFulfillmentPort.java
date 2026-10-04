@@ -37,6 +37,12 @@ public class StubOrderFulfillmentPort implements OrderFulfillmentPort {
 
     private static final String NOT_FOUND = "Order not found.";
 
+    private static final List<String> OPEN_STATUSES = List.of(
+            OrderStatus.PENDING.wireValue(),
+            OrderStatus.CONFIRMED.wireValue(),
+            OrderStatus.PICKED.wireValue(),
+            OrderStatus.PACKED.wireValue());
+
     private final DevOrderRepository orderRepository;
     private final DevOrderItemRepository itemRepository;
 
@@ -115,7 +121,8 @@ public class StubOrderFulfillmentPort implements OrderFulfillmentPort {
     @Override
     @Transactional(readOnly = true)
     public int countDueToday(String warehouseId) {
-        return (int) orderRepository.countByWarehouseIdAndDeliveryDate(warehouseId, LocalDate.now());
+        return (int) orderRepository.countByWarehouseIdAndDeliveryDateAndStatusIn(
+                warehouseId, LocalDate.now(), OPEN_STATUSES);
     }
 
     private DevOrder requireOrder(String warehouseId, String orderId) {
