@@ -12,6 +12,7 @@ export const setLogoutHandler = (handler) => {
 };
 
 export const runLogout = () => {
+  tokenGetter = () => null;
   if (logoutHandler) logoutHandler();
 };
 

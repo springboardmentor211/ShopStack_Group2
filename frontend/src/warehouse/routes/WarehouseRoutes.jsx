@@ -1,9 +1,11 @@
-import { Navigate, Route } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import WarehouseLayout from '../components/layout/WarehouseLayout';
 import DashboardPage from '../pages/DashboardPage';
 import ReceivingPage from '../pages/ReceivingPage';
 import InventoryPage from '../pages/InventoryPage';
 import MovementPage from '../pages/MovementPage';
+import OrdersPage from '../pages/OrdersPage';
+import PickingPage from '../pages/PickingPage';
 
 function ComingSoon() {
   return (
@@ -15,13 +17,17 @@ function ComingSoon() {
 
 export default function WarehouseRoutes() {
   return (
-    <Route path="/warehouse" element={<WarehouseLayout />}>
-      <Route index element={<Navigate to="dashboard" replace />} />
-      <Route path="dashboard" element={<DashboardPage />} />
-      <Route path="receiving" element={<ReceivingPage />} />
-      <Route path="inventory" element={<InventoryPage />} />
-      <Route path="movement" element={<MovementPage />} />
-      <Route path="*" element={<ComingSoon />} />
-    </Route>
+    <Routes>
+      <Route element={<WarehouseLayout />}>
+        <Route index element={<Navigate to="/warehouse/dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="receiving" element={<ReceivingPage />} />
+        <Route path="inventory" element={<InventoryPage />} />
+        <Route path="movement" element={<MovementPage />} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route path="picking" element={<PickingPage />} />
+        <Route path="*" element={<ComingSoon />} />
+      </Route>
+    </Routes>
   );
 }

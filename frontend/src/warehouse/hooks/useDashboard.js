@@ -12,12 +12,18 @@ export function useDashboard() {
   const inventoryStatus = useSelector((state) => state.warehouse.inventory.status);
   const summaryStatus = useSelector((state) => state.warehouse.orderSummary.status);
   const receivingStatus = useSelector((state) => state.warehouse.receiving.status);
+  const movementStatus = useSelector((state) => state.warehouse.movement.status);
+  const inventoryError = useSelector((state) => state.warehouse.inventory.error);
+  const summaryError = useSelector((state) => state.warehouse.orderSummary.error);
+  const receivingError = useSelector((state) => state.warehouse.receiving.error);
+  const movementError = useSelector((state) => state.warehouse.movement.error);
   const loading = !loaded;
-  const failed = [inventoryStatus, summaryStatus, receivingStatus].includes('failed');
+  const failed = [inventoryStatus, summaryStatus, receivingStatus, movementStatus].includes('failed');
+  const error = inventoryError || summaryError || receivingError || movementError || null;
 
   function reload() {
     if (warehouseId) dispatch(loadWarehouseData(warehouseId));
   }
 
-  return { ...data, lastSyncedAt, loading, failed, reload };
+  return { ...data, lastSyncedAt, loading, failed, error, reload };
 }
