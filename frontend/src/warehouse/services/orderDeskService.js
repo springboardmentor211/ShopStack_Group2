@@ -56,11 +56,27 @@ const sampleOrders = [
 export async function getWarehouseOrders() {
   try {
     const savedOrders = localStorage.getItem(storageKey)
-    if (savedOrders) return JSON.parse(savedOrders)
+    if (savedOrders) {
+      const parsedOrders = JSON.parse(savedOrders)
+      if (!Array.isArray(parsedOrders)) throw new TypeError('Invalid order data')
+      return parsedOrders.map((order) => ({
+        ...order,
+        items: order.items.map((item) => {
+          const pickedQuantity = Number.isInteger(item.pickedQuantity)
+            ? Math.max(0, Math.min(item.pickedQuantity, item.quantity))
+            : item.picked ? item.quantity : 0
+          return { ...item, pickedQuantity, picked: pickedQuantity === item.quantity }
+        }),
+      }))
+    }
   } catch {
-    localStorage.removeItem(storageKey)
+    try {
+      localStorage.removeItem(storageKey)
+    } catch {
+      // Storage may be disabled by the browser.
+    }
   }
-  return sampleOrders
+  return JSON.parse(JSON.stringify(sampleOrders))
 }
 
 export function saveWarehouseOrders(orders) {
