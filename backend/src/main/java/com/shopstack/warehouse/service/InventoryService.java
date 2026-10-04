@@ -32,7 +32,7 @@ public class InventoryService {
     }
 
     public List<InventoryRowDto> getInventory(String warehouseId) {
-        List<InventoryRow> rows = inventoryRowRepository.findByWarehouseId(warehouseId);
+        List<InventoryRow> rows = inventoryRowRepository.findByWarehouseIdOrderByIdDesc(warehouseId);
         return rows.stream().map(this::toDto).toList();
     }
 
