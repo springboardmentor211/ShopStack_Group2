@@ -26,17 +26,16 @@ const GREEN_STAGES = ['shipped', 'out_for_delivery', 'delivered'];
 
 const pad = (n) => String(n).padStart(2, '0');
 
-function KpiCard({ icon: Icon, note, noteClass, label, value }) {
+function KpiCard({ icon: Icon, label, value }) {
   return (
-    <article className="wh-card rounded-2xl bg-white p-5">
-      <div className="flex items-start justify-between">
-        <div className="rounded-xl bg-[#F6EBDD] p-3 text-[#8F6739]">
-          <Icon className="h-5 w-5" />
+    <article className="wh-card flex min-h-[200px] flex-col justify-between rounded-2xl bg-white p-6">
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0 rounded-xl bg-[#F6EBDD] p-3.5 text-[#8F6739]">
+          <Icon className="h-6 w-6" />
         </div>
-        <span className={`text-xs font-semibold ${noteClass}`}>{note}</span>
+        <p className="min-w-0 text-base font-semibold leading-tight text-[#746D62]">{label}</p>
       </div>
-      <p className="mt-8 text-sm text-[#746D62]">{label}</p>
-      <p className="wh-editorial mt-2 text-[26px] font-bold text-[#1A1A1A]">{value}</p>
+      <p className="wh-editorial mt-8 text-[46px] font-bold leading-none text-[#1A1A1A]">{value}</p>
     </article>
   );
 }
@@ -93,7 +92,8 @@ function StockRow({ item, status, onOpen }) {
 export default function DashboardPage() {
   const d = useDashboard();
   const jump = useWarehouseJump();
-  const dash = (value) => (d.loading ? '—' : value);
+  const ready = !d.loading && !d.failed;
+  const dash = (value) => (ready ? value : '—');
 
   const queueRows = [
     {
@@ -130,6 +130,8 @@ export default function DashboardPage() {
     },
   ].filter((row) => row.count > 0);
 
+  const showAlerts = ready && d.alertCount > 0;
+
   return (
     <div className="px-5 py-7 lg:px-8">
       <div className="wh-reveal flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -150,36 +152,28 @@ export default function DashboardPage() {
 
       {d.failed && (
         <div className="mt-6">
-          <LoadNotice status="failed" error="Could not load the dashboard data." hasData={false} onRetry={d.reload} />
+          <LoadNotice status="failed" error={d.error || 'Could not load the dashboard data.'} hasData={false} onRetry={d.reload} />
         </div>
       )}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Boxes}
-          note={d.receivedToday ? `+${d.receivedToday.toLocaleString('en-IN')} received today` : 'Across all bins'}
-          noteClass="text-[#337454]"
           label="Total Inventory"
           value={dash(d.totalInventory.toLocaleString('en-IN'))}
         />
         <KpiCard
           icon={AlertTriangle}
-          note={d.alertCount ? 'Needs review' : 'All clear'}
-          noteClass={d.alertCount ? 'text-[#8F6739]' : 'text-[#337454]'}
           label="Low Stock Alerts"
           value={dash(pad(d.alertCount))}
         />
         <KpiCard
           icon={Truck}
-          note={`${d.dueToday} due today`}
-          noteClass="text-[#337454]"
           label="Pending Shipments"
           value={dash(pad(d.pendingShipments))}
         />
         <KpiCard
           icon={ClipboardCheck}
-          note={d.ordersToPick ? 'Action needed' : 'On schedule'}
-          noteClass="text-[#8F6739]"
           label="Orders to Pick"
           value={dash(pad(d.ordersToPick))}
         />
@@ -206,7 +200,7 @@ export default function DashboardPage() {
               Products at or below their reorder threshold, and anything fully out of stock.
             </p>
           </div>
-          {d.alertCount > 0 && (
+          {showAlerts && (
             <button
               type="button"
               onClick={() => jump.toInventory()}
@@ -217,7 +211,11 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {d.alertCount > 0 ? (
+        {!ready ? (
+          <p className="mt-5 text-sm text-[#746D62]">
+            {d.loading ? 'Loading…' : 'Stock data is unavailable right now.'}
+          </p>
+        ) : showAlerts ? (
           <div className="mt-5 grid gap-6 lg:grid-cols-2">
             <div>
               <p className="text-xs font-bold uppercase tracking-[.14em] text-[#B5423B]">
@@ -247,7 +245,7 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          !d.loading && !d.failed && d.totalInventory > 0 && (
+          d.totalInventory > 0 && (
             <p className="mt-5 rounded-xl bg-[#EAF4EC] px-4 py-3 text-sm font-semibold text-[#337454]">
               All products are stocked above their reorder threshold.
             </p>
