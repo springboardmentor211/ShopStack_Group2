@@ -5,8 +5,11 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import products from "../../shared/data/products";
+import { getUser, logout } from "../services/authService";
 const NAV_CATEGORIES = [
   { label: "All Categories", path: "/products" },
   { label: "Mobiles & Accessories", path: "/products?category=Mobiles" },
@@ -19,18 +22,54 @@ const NAV_CATEGORIES = [
   { label: "Deals", path: "/deals" },
 ];
 
-const SEARCH_PRODUCTS = [
-  { id: "premium-smartphone", name: "Premium Smartphone", category: "Mobiles", image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=200&q=80" },
-  { id: "slim-performance-laptop", name: "Slim Performance Laptop", category: "Laptops", image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=200&q=80" },
-  { id: "wireless-headphones", name: "Wireless Headphones", category: "Headphones", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80" },
-  { id: "smart-fitness-watch", name: "Smart Fitness Watch", category: "Smartwatches", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=200&q=80" },
-  { id: "everyday-travel-backpack", name: "Everyday Travel Backpack", category: "Sports", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=200&q=80" },
-  { id: "classic-everyday-style", name: "Classic Everyday Style", category: "Fashion", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=200&q=80" },
-];
+// Search uses the shared product list (small thumbnails for suggestions).
+const SEARCH_PRODUCTS = products.map((product) => ({
+  id: product.id,
+  name: product.name,
+  category: product.category,
+  image: product.image.replace("w=1000", "w=200"),
+}));
 
 const Navbar = () => {
   const navigate = useNavigate();
+  // Cart badge shows the total number of items in the cart.
+  const cartCount = useSelector((state) =>
+    state.cart.items.reduce((total, item) => total + item.quantity, 0)
+  );
   const [search, setSearch] = useState("");
+
+  // Account menu: logged-in users see their name and a Logout button.
+  const [user, setUser] = useState(() => getUser());
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const accountRef = useRef(null);
+
+  useEffect(() => {
+    if (!showAccountMenu) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (accountRef.current && !accountRef.current.contains(event.target)) {
+        setShowAccountMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [showAccountMenu]);
+
+  const handleAccountClick = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setShowAccountMenu((open) => !open);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    setShowAccountMenu(false);
+    navigate("/");
+  };
+
+  const accountName = user?.name ? user.name.trim().split(" ")[0] : "";
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
 
   const normalizedSearch = search.trim().toLowerCase();
@@ -434,7 +473,7 @@ const Navbar = () => {
                   setShowSearchSuggestions(true);
                 }
               }}
-              placeholder="Search for products, brands and more"
+              placeholder="Search for products"
               style={{
                 flex: 1,
                 width: "100%",
@@ -591,6 +630,13 @@ const Navbar = () => {
             {/* WISHLIST */}
 
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Open wishlist"
+              onClick={() => navigate("/wishlist")}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") navigate("/wishlist");
+              }}
               style={{
                 width: "55px",
                 display: "flex",
@@ -628,6 +674,13 @@ const Navbar = () => {
             {/* CART */}
 
             <div
+              role="button"
+              tabIndex={0}
+              aria-label={`Open cart, ${cartCount} items`}
+              onClick={() => navigate("/cart")}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") navigate("/cart");
+              }}
               style={{
                 width: "45px",
                 display: "flex",
@@ -669,7 +722,7 @@ const Navbar = () => {
                     boxSizing: "border-box",
                   }}
                 >
-                  0
+                  {cartCount > 99 ? "99+" : cartCount}
                 </span>
               </div>
 
@@ -687,39 +740,114 @@ const Navbar = () => {
 
             {/* ACCOUNT */}
 
-            <div
-              style={{
-                width: "55px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#211f1b",
-                cursor: "pointer",
-              }}
-            >
+            <div ref={accountRef} style={{ position: "relative" }}>
               <div
+                role="button"
+                tabIndex={0}
+                aria-label={user ? "Open account menu" : "Sign in"}
+                aria-expanded={user ? showAccountMenu : undefined}
+                onClick={handleAccountClick}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") handleAccountClick();
+                }}
                 style={{
-                  height: "24px",
+                  width: "55px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#211f1b",
+                  cursor: "pointer",
                 }}
               >
-                <User
-                  size={23}
-                  strokeWidth={1.6}
-                  color="#211f1b"
-                />
+                <div
+                  style={{
+                    height: "24px",
+                  }}
+                >
+                  <User
+                    size={23}
+                    strokeWidth={1.6}
+                    color="#211f1b"
+                  />
+                </div>
+
+                <span
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "11px",
+                    fontWeight: "400",
+                    lineHeight: "1",
+                    maxWidth: "55px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {user ? accountName || "Account" : "Sign in"}
+                </span>
               </div>
 
-              <span
-                style={{
-                  marginTop: "4px",
-                  fontSize: "11px",
-                  fontWeight: "400",
-                  lineHeight: "1",
-                }}
-              >
-                Account
-              </span>
+              {user && showAccountMenu && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 12px)",
+                    right: 0,
+                    width: "220px",
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #d9c6ad",
+                    borderRadius: "10px",
+                    padding: "14px",
+                    boxSizing: "border-box",
+                    zIndex: 100,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      color: "#211f1b",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {user.name || "My Account"}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#716c64",
+                      margin: "4px 0 14px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {user.email || user.phone}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    style={{
+                      width: "100%",
+                      height: "38px",
+                      border: "none",
+                      borderRadius: "7px",
+                      backgroundColor: "#211f1b",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
