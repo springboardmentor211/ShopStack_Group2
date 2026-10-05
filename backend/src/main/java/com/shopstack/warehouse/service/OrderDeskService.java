@@ -4,36 +4,33 @@ import com.shopstack.common.enums.OrderStatus;
 import com.shopstack.common.exception.ConflictException;
 import com.shopstack.common.exception.ResourceNotFoundException;
 import com.shopstack.common.exception.UnprocessableException;
+import com.shopstack.common.util.IdGenerator;
 import com.shopstack.warehouse.dto.response.OrderDetailDto;
 import com.shopstack.warehouse.dto.response.OrderListItemDto;
+import com.shopstack.warehouse.entity.InventoryRow;
+import com.shopstack.warehouse.entity.StockMovement;
 import com.shopstack.warehouse.port.OrderFulfillmentPort;
 import com.shopstack.warehouse.port.dto.OrderItemRecord;
 import com.shopstack.warehouse.port.dto.OrderRecord;
-import com.shopstack.warehouse.entity.InventoryRow;
 import com.shopstack.warehouse.repository.InventoryRowRepository;
+import com.shopstack.warehouse.repository.StockMovementRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Order Desk: the list and detail views, plus confirm and cancel.
- *
- * <p>All order data comes from {@link OrderFulfillmentPort}; this service never touches the
- * order module's tables. Status pre-conditions are checked here so the 409/422 messages are
- * the contract's, and the port re-checks them as a compare-and-set to close races.
- */
 @Service
 public class OrderDeskService {
 
-    /** Contract cap on page size; a larger request is silently clamped, not rejected. */
     private static final int MAX_PAGE_SIZE = 100;
 
-    /** Once an order is moving it can no longer be cancelled (contract §3.4). */
     private static final Set<OrderStatus> TOO_LATE_TO_CANCEL = Set.of(
             OrderStatus.SHIPPED,
             OrderStatus.OUT_FOR_DELIVERY,
@@ -42,11 +39,17 @@ public class OrderDeskService {
 
     private final OrderFulfillmentPort orderFulfillmentPort;
     private final InventoryRowRepository inventoryRowRepository;
+    private final StockMovementRepository stockMovementRepository;
+    private final IdGenerator idGenerator;
 
     public OrderDeskService(OrderFulfillmentPort orderFulfillmentPort,
-                            InventoryRowRepository inventoryRowRepository) {
+                            InventoryRowRepository inventoryRowRepository,
+                            StockMovementRepository stockMovementRepository,
+                            IdGenerator idGenerator) {
         this.orderFulfillmentPort = orderFulfillmentPort;
         this.inventoryRowRepository = inventoryRowRepository;
+        this.stockMovementRepository = stockMovementRepository;
+        this.idGenerator = idGenerator;
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +81,9 @@ public class OrderDeskService {
         if (deliveryDate.isBefore(LocalDate.now())) {
             throw new UnprocessableException("Choose a valid delivery date.");
         }
-        return toDetail(orderFulfillmentPort.confirm(warehouseId, orderId, deliveryDate));
+        OrderRecord confirmed = orderFulfillmentPort.confirm(warehouseId, orderId, deliveryDate);
+        logOrderMovement(warehouseId, orderId, "Confirmed", "Order desk", orderId + " · Pick queue");
+        return toDetail(confirmed);
     }
 
     @Transactional
@@ -87,15 +92,33 @@ public class OrderDeskService {
         if (TOO_LATE_TO_CANCEL.contains(order.status())) {
             throw new ConflictException("This order can no longer be cancelled.");
         }
-        // No compensating stock movement: a completed pick already decremented
-        // inventory_rows, so cancelling does not put anything back. Deliberate.
-        return toDetail(orderFulfillmentPort.cancel(warehouseId, orderId));
+        OrderRecord cancelled = orderFulfillmentPort.cancel(warehouseId, orderId);
+        logOrderMovement(warehouseId, orderId, "Cancelled", orderId, "Cancelled");
+        return toDetail(cancelled);
     }
 
-    /**
-     * Reads the order or 404s. A valid order id belonging to another warehouse is also a
-     * 404 rather than a 403, so this endpoint does not disclose which ids exist elsewhere.
-     */
+    private void logOrderMovement(String warehouseId, String orderId, String type, String from, String to) {
+        String performedBy = currentUser();
+        for (OrderItemRecord item : orderFulfillmentPort.findItems(warehouseId, orderId)) {
+            stockMovementRepository.save(StockMovement.builder()
+                    .id(idGenerator.generateMovementId())
+                    .warehouseId(warehouseId)
+                    .sku(item.sku())
+                    .type(type)
+                    .fromLoc(from)
+                    .toLoc(to)
+                    .qty(item.qty())
+                    .performedBy(performedBy)
+                    .at(Instant.now())
+                    .build());
+        }
+    }
+
+    private String currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication == null ? null : authentication.getName();
+    }
+
     private OrderRecord requireOrder(String warehouseId, String orderId) {
         return orderFulfillmentPort.findOrder(warehouseId, orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
@@ -112,8 +135,6 @@ public class OrderDeskService {
     private OrderDetailDto toDetail(OrderRecord order) {
         String warehouseId = order.warehouseId();
 
-        // One read of the warehouse's stock, indexed by SKU, shared across all lines —
-        // avoids an N+1 query when an order has several lines.
         Map<String, InventoryRow> stockBySku = inventoryRowRepository.findByWarehouseId(warehouseId).stream()
                 .collect(Collectors.toMap(InventoryRow::getSku, r -> r, (a, b) -> a));
 
@@ -133,11 +154,6 @@ public class OrderDeskService {
                 items);
     }
 
-    /**
-     * Reads bin location and stock from {@code inventory_rows} — the same table the vendor
-     * Inventory screen reads — so the two screens cannot disagree about where a SKU sits.
-     * Both fields are null when the warehouse stocks none of that SKU.
-     */
     private OrderDetailDto.OrderItemDto toItemDto(OrderItemRecord item, Map<String, InventoryRow> stockBySku) {
         InventoryRow row = stockBySku.get(item.sku());
         return new OrderDetailDto.OrderItemDto(
