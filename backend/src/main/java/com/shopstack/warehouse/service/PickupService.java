@@ -33,24 +33,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Pickup: the pick queue, the pick list, per-line toggling, and completing the pick.
- *
- * <p>Stock leaves the bin here, not at ship: completing a pick decrements
- * {@code inventory_rows} and writes one {@code Pick} movement per line into the same
- * {@code stock_movements} table the vendor-side Putaway uses, so the movement feed reads as
- * one log.
- *
- * <p>A line's bin is whichever bin holds the most of that SKU, and completing locks that
- * SKU's rows, so a concurrent pick of a different order cannot oversell the same stock.
- */
 @Service
 public class PickupService {
 
     private static final String PACK_STAGING = "Pack staging";
     private static final String MOVEMENT_TYPE = "Pick";
 
-    /** Guards on a completion attempt; the port re-checks by compare-and-set. */
     private static final Set<OrderStatus> PICKABLE = Set.of(OrderStatus.CONFIRMED, OrderStatus.PICKED);
 
     private final OrderFulfillmentPort orderFulfillmentPort;
@@ -98,8 +86,6 @@ public class PickupService {
             throw new ConflictException("Order must be confirmed before picking.");
         }
 
-        // Upsert lines added since the last visit, but never touch an existing picked flag:
-        // re-opening the pick list must not undo a picker's work.
         syncPickItems(order);
 
         List<OrderPickItem> rows = pickItemRepository.findByWarehouseIdAndOrderId(warehouseId, orderId);
@@ -136,9 +122,6 @@ public class PickupService {
             throw new ConflictException("Order must be confirmed before picking.");
         }
 
-        // A picker may open a line straight from a deep link without reading the pick list
-        // first, so seed the rows here too — otherwise the toggle 404s on a row that simply
-        // has not been materialised yet.
         syncPickItems(order);
 
         OrderPickItem row = pickItemRepository.findByOrderIdAndItemId(orderId, itemId)
@@ -149,7 +132,6 @@ public class PickupService {
         row.setPickedBy(picked ? currentUser() : null);
         pickItemRepository.save(row);
 
-        // Ticking a line does not move the order on; only completion does that.
         return ActionResultDto.okOnly();
     }
 
@@ -160,19 +142,16 @@ public class PickupService {
             throw new ConflictException("Order must be confirmed before picking.");
         }
 
-        // Lock the line rows first, so two pickers completing the same order serialise.
         List<OrderPickItem> rows = pickItemRepository.findByOrderIdWithLock(orderId);
         if (rows.isEmpty() || rows.stream().anyMatch(r -> !Boolean.TRUE.equals(r.getPicked()))) {
             throw new ConflictException("Not all items have been picked.");
         }
 
-        // Lock and resolve the stock row for each distinct SKU before touching anything.
         Map<String, InventoryRow> stockBySku = new LinkedHashMap<>();
         for (OrderPickItem row : rows) {
             stockBySku.computeIfAbsent(row.getSku(), sku -> primaryLockedRow(warehouseId, sku));
         }
 
-        // Validate every line up front so a shortfall cannot leave the order half-picked.
         for (OrderPickItem row : rows) {
             InventoryRow stock = stockBySku.get(row.getSku());
             if (stock == null || stock.getQty() < row.getQty()) {
@@ -194,7 +173,7 @@ public class PickupService {
                     .sku(row.getSku())
                     .type(MOVEMENT_TYPE)
                     .fromLoc(stock.getBin())
-                    .toLoc(PACK_STAGING)
+                    .toLoc(orderId + " · " + PACK_STAGING)
                     .qty(row.getQty())
                     .performedBy(performedBy)
                     .at(Instant.now())
@@ -248,7 +227,6 @@ public class PickupService {
                 binSummary);
     }
 
-    /** Richest bin per SKU, matching what the pick list shows. Read-only, no lock. */
     private Map<String, InventoryRow> primaryStockBySku(String warehouseId) {
         return inventoryRowRepository.findByWarehouseId(warehouseId).stream()
                 .collect(Collectors.toMap(InventoryRow::getSku, r -> r,

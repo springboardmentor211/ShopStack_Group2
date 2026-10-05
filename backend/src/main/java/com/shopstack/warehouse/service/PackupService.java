@@ -10,9 +10,14 @@ import com.shopstack.warehouse.dto.response.ActionResultDto;
 import com.shopstack.warehouse.dto.response.PackupDetailDto;
 import com.shopstack.warehouse.dto.response.PackupListItemDto;
 import com.shopstack.warehouse.entity.OrderPacking;
+import com.shopstack.warehouse.entity.StockMovement;
 import com.shopstack.warehouse.port.OrderFulfillmentPort;
+import com.shopstack.warehouse.port.dto.OrderItemRecord;
 import com.shopstack.warehouse.port.dto.OrderRecord;
 import com.shopstack.warehouse.repository.OrderPackingRepository;
+import com.shopstack.warehouse.repository.StockMovementRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,32 +28,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- * Packup: the pack/ship queue, per-order packing detail, recording a box, and handing the
- * parcel to a carrier.
- *
- * <p>No inventory is touched here. Stock left the bin when the pick completed (W-18), so
- * shipping deliberately writes no stock movement — adding one would double-count the
- * outbound and make the movement feed disagree with on-hand.
- *
- * <p>Status still flows only through {@link OrderFulfillmentPort}: this service owns the
- * {@code order_packings} row, never a second copy of the order status.
- */
 @Service
 public class PackupService {
 
     private static final Set<String> BOX_SIZES = Set.of("small", "medium", "large");
+    private static final String PACK_STAGING = "Pack staging";
 
     private final OrderFulfillmentPort orderFulfillmentPort;
     private final OrderPackingRepository packingRepository;
     private final IdGenerator idGenerator;
+    private final StockMovementRepository stockMovementRepository;
 
     public PackupService(OrderFulfillmentPort orderFulfillmentPort,
                          OrderPackingRepository packingRepository,
-                         IdGenerator idGenerator) {
+                         IdGenerator idGenerator,
+                         StockMovementRepository stockMovementRepository) {
         this.orderFulfillmentPort = orderFulfillmentPort;
         this.packingRepository = packingRepository;
         this.idGenerator = idGenerator;
+        this.stockMovementRepository = stockMovementRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,11 +73,6 @@ public class PackupService {
                 .toList();
     }
 
-    /**
-     * Detail read, which upserts the packing row. Writing on a GET is intentional: the API
-     * must always return the full {@code packing}/{@code outbound} objects, and creating the
-     * row here is cheaper than making every later reader null-check its absence.
-     */
     @Transactional
     public PackupDetailDto getDetail(String warehouseId, String orderId) {
         OrderRecord order = requireOrder(warehouseId, orderId);
@@ -107,6 +100,7 @@ public class PackupService {
         packingRepository.save(packing);
 
         orderFulfillmentPort.advanceStatus(warehouseId, orderId, OrderStatus.PICKED, OrderStatus.PACKED);
+        logOrderMovement(warehouseId, orderId, "Pack", PACK_STAGING, orderId + " · Packed");
         return ActionResultDto.of(OrderStatus.PACKED.wireValue());
     }
 
@@ -121,8 +115,6 @@ public class PackupService {
         }
 
         OrderPacking packing = packingRow(warehouseId, orderId);
-        // Reuse an existing id so retrying ship does not burn a sequence value or change
-        // the tracking number already shown to the customer.
         if (packing.getTrackingId() == null || packing.getTrackingId().isBlank()) {
             packing.setTrackingId(idGenerator.generateTrackingId(carrier));
         }
@@ -132,7 +124,30 @@ public class PackupService {
         packingRepository.save(packing);
 
         orderFulfillmentPort.advanceStatus(warehouseId, orderId, OrderStatus.PACKED, OrderStatus.SHIPPED);
+        logOrderMovement(warehouseId, orderId, "Ship", orderId + " · " + PACK_STAGING, carrier.trim());
         return ActionResultDto.shipped(OrderStatus.SHIPPED.wireValue(), packing.getTrackingId());
+    }
+
+    private void logOrderMovement(String warehouseId, String orderId, String type, String from, String to) {
+        String performedBy = currentUser();
+        for (OrderItemRecord item : orderFulfillmentPort.findItems(warehouseId, orderId)) {
+            stockMovementRepository.save(StockMovement.builder()
+                    .id(idGenerator.generateMovementId())
+                    .warehouseId(warehouseId)
+                    .sku(item.sku())
+                    .type(type)
+                    .fromLoc(from)
+                    .toLoc(to)
+                    .qty(item.qty())
+                    .performedBy(performedBy)
+                    .at(Instant.now())
+                    .build());
+        }
+    }
+
+    private String currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication == null ? null : authentication.getName();
     }
 
     private PackupDetailDto toDetail(OrderRecord order, OrderPacking packing, PackStage stage) {
@@ -160,10 +175,6 @@ public class PackupService {
                         .build());
     }
 
-    /**
-     * Emits {@code packed} only when the caller filtered on it; otherwise a packed-but-not-
-     * shipped order reads as {@code ready_to_ship} (W-19 rule 2).
-     */
     private PackStage stageFor(OrderStatus status, PackStage filter) {
         return switch (status) {
             case PICKED -> PackStage.TO_PACK;
