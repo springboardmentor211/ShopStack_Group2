@@ -10,8 +10,8 @@ const NAV_GROUPS = [
     label: 'Vendor Side',
     items: [
       { label: 'Receiving', path: '/warehouse/receiving', icon: ArrowDownToLine, badgeKey: 'receiving' },
-      { label: 'Inventory', path: '/warehouse/inventory', icon: Boxes, badgeKey: 'inventory', badgeTone: 'alert' },
-      { label: 'Stock Movement', path: '/warehouse/movement', icon: Move },
+      { label: 'Inventory', path: '/warehouse/inventory', icon: Boxes, badgeKey: 'inventory' },
+      { label: 'Stock Movement', path: '/warehouse/movement', icon: Move, badgeKey: 'movement' },
     ],
   },
   {
