@@ -1,5 +1,3 @@
-const storageKey = 'shopstack.warehouse-orders.demo.v1'
-
 const sampleOrders = [
   {
     id: 'ord-78421', orderNumber: 'S360-ORD-78421', status: 'PENDING', placedAt: '10:12',
@@ -53,21 +51,27 @@ const sampleOrders = [
   },
 ]
 
+let savedOrders = null
+
+const copy = (value) => JSON.parse(JSON.stringify(value))
+
+const normalizeOrders = (orders) =>
+  orders.map((order) => ({
+    ...order,
+    items: order.items.map((item) => {
+      const pickedQuantity = Number.isInteger(item.pickedQuantity)
+        ? Math.max(0, Math.min(item.pickedQuantity, item.quantity))
+        : item.picked ? item.quantity : 0
+      return { ...item, pickedQuantity, picked: pickedQuantity === item.quantity }
+    }),
+  }))
+
 export async function getWarehouseOrders() {
-  try {
-    const savedOrders = localStorage.getItem(storageKey)
-    if (savedOrders) return JSON.parse(savedOrders)
-  } catch {
-    localStorage.removeItem(storageKey)
-  }
-  return sampleOrders
+  if (savedOrders) return normalizeOrders(copy(savedOrders))
+  return copy(sampleOrders)
 }
 
 export function saveWarehouseOrders(orders) {
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(orders))
-    return true
-  } catch {
-    return false
-  }
+  savedOrders = copy(orders)
+  return true
 }

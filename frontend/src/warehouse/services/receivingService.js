@@ -47,6 +47,28 @@ export async function getBins(warehouseId) {
   return apiRequest(`/api/warehouses/${warehouseId}/bins`);
 }
 
+function putAwayAsn(asn, bin, receivedAt) {
+  const { warehouseId } = asn;
+  const product = mockCatalog[asn.sku];
+  const zones = mockBins[warehouseId] || {};
+  const zone = Object.keys(zones).find((z) => zones[z].includes(bin));
+
+  let row = mockInventory.find((i) => i.warehouseId === warehouseId && i.sku === asn.sku && i.bin === bin);
+  if (!row) {
+    row = { warehouseId, sku: asn.sku, zone, bin, qty: 0, ...product };
+    mockInventory.push(row);
+  }
+  row.qty += asn.qty;
+
+  mockInventory
+    .filter((i) => i.warehouseId === warehouseId && i.sku === asn.sku && i.bin !== bin && i.qty === 0)
+    .forEach((i) => mockInventory.splice(mockInventory.indexOf(i), 1));
+
+  asn.status = 'received';
+  asn.bin = bin;
+  asn.receivedAt = receivedAt;
+}
+
 export async function receiveAsn(warehouseId, id, bin) {
   if (USE_MOCK) {
     await wait(300);
@@ -62,23 +84,11 @@ export async function receiveAsn(warehouseId, id, bin) {
     const zone = Object.keys(zones).find((z) => zones[z].includes(bin));
     if (!bin || !zone) throw new Error('Choose a valid bin for this warehouse.');
 
-    let row = mockInventory.find((i) => i.warehouseId === warehouseId && i.sku === asn.sku && i.bin === bin);
-    if (!row) {
-      row = { warehouseId, sku: asn.sku, zone, bin, qty: 0, ...product };
-      mockInventory.push(row);
-    }
-    row.qty += asn.qty;
-
-    mockInventory
-      .filter((i) => i.warehouseId === warehouseId && i.sku === asn.sku && i.bin !== bin && i.qty === 0)
-      .forEach((i) => mockInventory.splice(mockInventory.indexOf(i), 1));
+    const receivedAt = new Date().toISOString();
+    putAwayAsn(asn, bin, receivedAt);
 
     const owner = mockWarehouses.find((w) => w.id === warehouseId)?.ownerName || 'Warehouse owner';
     const vendor = vendorById(asn.vendorId);
-
-    asn.status = 'received';
-    asn.bin = bin;
-    asn.receivedAt = new Date().toISOString();
 
     addMockMovement({
       warehouseId,

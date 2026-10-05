@@ -28,14 +28,14 @@ const pad = (n) => String(n).padStart(2, '0');
 
 function KpiCard({ icon: Icon, label, value }) {
   return (
-    <article className="wh-card flex min-h-[200px] flex-col justify-between rounded-2xl bg-white p-6">
+    <article className="wh-card flex min-h-[150px] flex-col justify-between rounded-2xl bg-white p-5">
       <div className="flex items-center gap-3">
-        <div className="flex-shrink-0 rounded-xl bg-[#F6EBDD] p-3.5 text-[#8F6739]">
-          <Icon className="h-6 w-6" />
+        <div className="flex-shrink-0 rounded-xl bg-[#F6EBDD] p-3 text-[#8F6739]">
+          <Icon className="h-5 w-5" />
         </div>
-        <p className="min-w-0 text-base font-semibold leading-tight text-[#746D62]">{label}</p>
+        <p className="min-w-0 text-sm font-semibold leading-tight text-[#746D62]">{label}</p>
       </div>
-      <p className="wh-editorial mt-8 text-[46px] font-bold leading-none text-[#1A1A1A]">{value}</p>
+      <p className="wh-editorial mt-5 text-[30px] font-bold leading-none text-[#1A1A1A]">{value}</p>
     </article>
   );
 }
