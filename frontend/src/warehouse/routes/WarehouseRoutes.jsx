@@ -19,6 +19,7 @@ function ComingSoon() {
 export default function WarehouseRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/warehouse/dashboard" replace />} />
       <Route path="/warehouse" element={<WarehouseLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
