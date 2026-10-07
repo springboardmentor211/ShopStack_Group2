@@ -9,6 +9,8 @@ const selectInboundItems = (state) => state.warehouse.receiving.items;
 const selectMovementItems = (state) => state.warehouse.movement.items;
 const selectPipeline = (state) => state.warehouse.orderSummary.pipeline;
 const selectDueToday = (state) => state.warehouse.orderSummary.dueToday;
+const selectSeen = (state) => state.warehouse.seen;
+const selectWarehouseId = (state) => state.warehouse.core.profile?.warehouseId;
 
 const plural = (n, one, many) => (n === 1 ? one : many);
 
@@ -28,12 +30,40 @@ export const selectStockGroups = createSelector([selectSkuSummaries], (summaries
   lowStock: summaries.filter((s) => statusOf(s) === 'Low Stock'),
 }));
 
+export const movementNumber = (movement) => Number(String(movement.id).split('-')[1]) || 0;
+
+export const selectLatestMovementNumber = createSelector([selectMovementItems], (movements) =>
+  movements.reduce((max, m) => Math.max(max, movementNumber(m)), 0)
+);
+
+const INVENTORY_CHANGE_TYPES = ['Putaway'];
+const ORDER_REF = /\b(?:[A-Z0-9]+-)?ORD-[A-Z0-9]+\b/;
+const ORDER_MOVEMENT_TYPES = ['Order placed', 'Confirmed', 'Pick', 'Pack', 'Ship', 'Out for delivery', 'Delivered', 'Cancelled'];
+
+const movementGroupKey = (movement) => {
+  const match = `${movement.from || ''} ${movement.to || ''}`.match(ORDER_REF);
+  return match && ORDER_MOVEMENT_TYPES.includes(movement.type) ? match[0] : movement.id;
+};
+
 export const selectSidebarCounts = createSelector(
-  [selectStockGroups, selectInboundItems],
-  ({ outOfStock, lowStock }, inbound) => ({
-    receiving: inbound.filter((a) => a.status === 'pending').length,
-    inventory: outOfStock.length + lowStock.length,
-  })
+  [selectInboundItems, selectMovementItems, selectSeen, selectWarehouseId],
+  (inbound, movements, seen, warehouseId) => {
+    const marks = seen[warehouseId];
+    const unseen = (page, filter = () => true) =>
+      marks
+        ? new Set(
+            movements
+              .filter((m) => movementNumber(m) > (marks[page] ?? 0) && filter(m))
+              .map(movementGroupKey)
+          ).size
+        : 0;
+
+    return {
+      receiving: inbound.filter((a) => a.status === 'pending').length,
+      inventory: unseen('inventory', (m) => INVENTORY_CHANGE_TYPES.includes(m.type)),
+      movement: unseen('movement'),
+    };
+  }
 );
 
 export const selectNotifications = createSelector(

@@ -1,11 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { fetchWarehouseProfile, loadWarehouseData } from '../../store/slices/warehouseSlice';
 import { resetWarehouseData } from '../../store/actions';
-import { selectSidebarCounts } from '../../store/selectors/warehouseSelectors';
+import { selectSidebarCounts, selectLatestMovementNumber } from '../../store/selectors/warehouseSelectors';
+import { initSeen, markSeen } from '../../store/slices/seenSlice';
 import { useCurrentWarehouse } from '../../hooks/useCurrentWarehouse';
 import '../../styles/warehouse.css';
 
@@ -15,6 +16,9 @@ export default function WarehouseLayout() {
   const dispatch = useDispatch();
   const { warehouse, warehouseId, status, error } = useCurrentWarehouse();
   const counts = useSelector(selectSidebarCounts);
+  const latestMovement = useSelector(selectLatestMovementNumber);
+  const movementStatus = useSelector((state) => state.warehouse.movement.status);
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -32,6 +36,14 @@ export default function WarehouseLayout() {
     const timer = setInterval(() => dispatch(loadWarehouseData(warehouseId)), REFRESH_MS);
     return () => clearInterval(timer);
   }, [warehouseId, dispatch]);
+
+  useEffect(() => {
+    if (!warehouseId || movementStatus !== 'succeeded') return;
+    dispatch(initSeen({ warehouseId, id: latestMovement }));
+    const path = location.pathname.replace(/\/+$/, '');
+    if (path === '/warehouse/inventory') dispatch(markSeen({ warehouseId, page: 'inventory', id: latestMovement }));
+    if (path === '/warehouse/movement') dispatch(markSeen({ warehouseId, page: 'movement', id: latestMovement }));
+  }, [warehouseId, movementStatus, latestMovement, location.pathname, dispatch]);
 
   return (
     <div className="wh-root flex min-h-screen bg-[#F5EFE0] text-[#1A1A1A]">
