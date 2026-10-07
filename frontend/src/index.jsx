@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import App from './App.jsx';
+import WarehouseRoutes from './warehouse/routes/WarehouseRoutes.jsx';
 import { store } from './store/appStore.js';
 import { initDevAuth } from './warehouse/services/devAuth.js';
 import './index.css';
@@ -12,7 +12,7 @@ initDevAuth().finally(() => {
     <StrictMode>
       <Provider store={store}>
         <BrowserRouter>
-          <App />
+          <WarehouseRoutes />
         </BrowserRouter>
       </Provider>
     </StrictMode>,
