@@ -1,8 +1,2 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { warehouseReducers } from '../warehouse/store/warehouseReducers';
-
-export const store = configureStore({
-  reducer: {
-    ...warehouseReducers,
-  },
-});
+export { store } from './index.js';
+export { default } from './index.js';
