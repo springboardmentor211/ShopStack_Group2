@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import cartReducer from "./cartSlice";
 import wishlistReducer from "./wishlistSlice";
+import { warehouseReducers } from "../warehouse/store/warehouseReducers";
 import { saveCart } from "../customer/services/cartService";
 import { saveWishlist } from "../customer/services/wishlistService";
 
@@ -8,6 +9,7 @@ export const store = configureStore({
   reducer: {
     cart: cartReducer,
     wishlist: wishlistReducer,
+    ...warehouseReducers,
   },
 });
 
