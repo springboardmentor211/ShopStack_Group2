@@ -5,7 +5,9 @@ import com.shopstack.auth.dto.LoginRequest;
 import com.shopstack.auth.dto.RegisterRequest;
 import com.shopstack.customer.entity.Customer;
 import com.shopstack.customer.repository.CustomerRepository;
+import com.shopstack.security.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,10 +15,10 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    // User Registration (Create Account)
     public AuthResponse register(RegisterRequest request) {
-        // Check if email already exists
         if (customerRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered: " + request.getEmail());
         }
@@ -24,7 +26,7 @@ public class AuthService {
         Customer customer = Customer.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(request.getPassword()) // Security note: BCrypt / PasswordEncoder use karna advisable hai
+                .password(passwordEncoder.encode(request.getPassword()))
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .city(request.getCity())
@@ -32,30 +34,32 @@ public class AuthService {
                 .build();
 
         Customer savedCustomer = customerRepository.save(customer);
+        String token = jwtUtils.generateJwtToken(savedCustomer.getEmail());
 
         return AuthResponse.builder()
                 .customerId(savedCustomer.getId())
                 .name(savedCustomer.getName())
                 .email(savedCustomer.getEmail())
-                .token("dummy-jwt-token-for-" + savedCustomer.getEmail())
+                .token(token)
                 .message("Account created successfully!")
                 .build();
     }
 
-    // User Login (Sign In)
     public AuthResponse login(LoginRequest request) {
         Customer customer = customerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        if (!customer.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
+
+        String token = jwtUtils.generateJwtToken(customer.getEmail());
 
         return AuthResponse.builder()
                 .customerId(customer.getId())
                 .name(customer.getName())
                 .email(customer.getEmail())
-                .token("dummy-jwt-token-for-" + customer.getEmail())
+                .token(token)
                 .message("Login successful!")
                 .build();
     }

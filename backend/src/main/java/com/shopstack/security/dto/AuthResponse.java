@@ -1,19 +1,19 @@
-package com.shopstack.security.dto;
+// package com.shopstack.security.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+// import lombok.AllArgsConstructor;
+// import lombok.Builder;
+// import lombok.Data;
+// import lombok.NoArgsConstructor;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class AuthResponse {
+// @Data
+// @Builder
+// @NoArgsConstructor
+// @AllArgsConstructor
+// public class AuthResponse {
 
-    private String token;
-    private String type = "Bearer";
-    private Long id;
-    private String email;
-    private String name;
-}
+//     private String token;
+//     private String type = "Bearer";
+//     private Long id;
+//     private String email;
+//     private String name;
+// }

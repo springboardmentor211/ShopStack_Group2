@@ -23,7 +23,7 @@ public class CustomerController {
     // PUT: Profile Update Karna (Edit Profile Screen)
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponseDTO> updateProfile(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestBody CustomerUpdateRequest request) {
         return ResponseEntity.ok(customerService.updateCustomerProfile(id, request));
     }
