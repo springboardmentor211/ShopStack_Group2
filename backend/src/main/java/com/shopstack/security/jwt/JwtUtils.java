@@ -2,6 +2,7 @@ package com.shopstack.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,17 +12,19 @@ import java.util.Date;
 public class JwtUtils {
 
     private final String jwtSecret = "ShopStackSuperSecretKeyForJwtTokenAuthentication2026";
-    private final int jwtExpirationMs = 86400000; // 24 hours
+    @Value("${app.jwt.expiration-ms:604800000}")
+    private long jwtExpirationMs = 604800000L;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     public String generateJwtToken(String username) {
+        Date issuedAt = new Date();
         return Jwts.builder()
                 .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .setIssuedAt(issuedAt)
+                .setExpiration(new Date(issuedAt.getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
