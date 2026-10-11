@@ -9,6 +9,8 @@ import Settings from "./vendor/pages/Settings/Settings";
 
 import Inventory from "./vendor/pages/Inventory";
 import Analytics from "./vendor/pages/Analytics";
+import Products from "./vendor/pages/Products";
+import Orders from "./vendor/pages/Orders";
 
 function App() {
   return (
@@ -22,11 +24,10 @@ function App() {
 
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="offers-coupons" element={<OffersCoupons />} />
+          <Route path="products" element={<Products />} />
+          <Route path="orders" element={<Orders />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="analytics" element={<Analytics />} />
-
-          <Route path="products" element={<h1>Products</h1>} />
-          <Route path="orders" element={<h1>Orders</h1>} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
