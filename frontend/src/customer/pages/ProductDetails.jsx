@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getProductById, formatPrice } from "../../shared/data/products";
+import { formatPrice } from "../../shared/format";
 import { addToCart, MAX_QUANTITY } from "../../store/cartSlice";
 import WishlistButton from "../components/WishlistButton";
 import { isLoggedIn } from "../services/authService";
@@ -13,7 +13,27 @@ const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(1);
-  const product = getProductById(id);
+  const products = useSelector((state) => state.products.items);
+  const productsStatus = useSelector((state) => state.products.status);
+  const product = products.find((item) => String(item.id) === id);
+
+  if (!product && (productsStatus === "idle" || productsStatus === "loading")) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#fffaf2",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#716c64",
+          fontFamily: "Arial, Helvetica Neue, Helvetica, sans-serif",
+        }}
+      >
+        Loading product...
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -127,7 +147,8 @@ const ProductDetails = () => {
             />
 
             {/* DISCOUNT */}
-            <div
+            {product.discount && (
+<div
               style={{
                 position: "absolute",
                 top: "14px",
@@ -142,6 +163,7 @@ const ProductDetails = () => {
             >
               {product.discount}
             </div>
+)}
           </div>
 
           {/* DETAILS */}
@@ -179,7 +201,8 @@ const ProductDetails = () => {
             </h1>
 
             {/* RATING */}
-            <div
+            {product.rating && (
+<div
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -212,6 +235,7 @@ const ProductDetails = () => {
                 {product.reviews} reviews
               </span>
             </div>
+)}
 
             {/* PRICE */}
             <div
@@ -233,7 +257,8 @@ const ProductDetails = () => {
                 {formatPrice(product.price)}
               </span>
 
-              <span
+              {product.oldPrice && (
+<span
                 style={{
                   fontSize: "14px",
                   color: "#9b9287",
@@ -242,8 +267,10 @@ const ProductDetails = () => {
               >
                 {formatPrice(product.oldPrice)}
               </span>
+)}
 
-              <span
+              {product.discount && (
+<span
                 style={{
                   fontSize: "14px",
                   color: "#b58243",
@@ -252,6 +279,7 @@ const ProductDetails = () => {
               >
                 {product.discount}
               </span>
+)}
             </div>
 
             {/* DESCRIPTION */}
@@ -351,12 +379,15 @@ const ProductDetails = () => {
 
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (!isLoggedIn()) {
                     navigate("/login", { state: { from: `/products/${product.id}` } });
                     return;
                   }
-                  dispatch(addToCart({ id: product.id, quantity }));
+                  const result = await dispatch(
+                    addToCart({ id: product.id, quantity })
+                  );
+                  if (addToCart.rejected.match(result)) return;
                   navigate("/cart");
                 }}
                 style={{

@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loadProducts } from "../../store/productsSlice";
+import { loadCart } from "../../store/cartSlice";
+import { loadWishlist } from "../../store/wishlistSlice";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { loginWithPassword } from "../services/authService";
@@ -10,6 +14,7 @@ import {
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const from = location.state?.from;
   const [identifier, setIdentifier] = useState(location.state?.email || "");
@@ -24,9 +29,11 @@ const Login = () => {
     const next = {};
     const value = identifier.trim();
 
-    if (!value) next.identifier = "Enter your email or phone number.";
-    else if (!/^\S+@\S+\.\S+$/.test(value) && !/^\d{10}$/.test(value)) {
-      next.identifier = "Enter a valid email or 10-digit phone number.";
+    if (!value) next.identifier = "Enter your email address.";
+    else if (/^\d{10}$/.test(value)) {
+      next.identifier = "Phone sign-in is not available yet. Please use your email.";
+    } else if (!/^\S+@\S+\.\S+$/.test(value)) {
+      next.identifier = "Enter a valid email address.";
     }
     if (!password) next.password = "Enter your password.";
 
@@ -39,14 +46,14 @@ const Login = () => {
     setSubmitting(false);
 
     if (!result.ok) {
-      setErrors(
-        result.error === "wrong_password"
-          ? { password: "Incorrect password. Please try again." }
-          : { identifier: "No account found. Please create an account first." }
-      );
+      setErrors({ password: result.message });
       return;
     }
 
+    // Load this customer's saved cart and wishlist from the database.
+    dispatch(loadProducts());
+    dispatch(loadCart());
+    dispatch(loadWishlist());
     navigate(from || "/", { replace: true });
   };
 

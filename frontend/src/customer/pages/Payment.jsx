@@ -1,312 +1,169 @@
-import React from "react";
+import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OrderSummary, { getCartDetails } from "../components/OrderSummary";
-
-import { clearCart } from "../../store/cartSlice";
-import { formatPrice } from "../../shared/data/products";
-
+import { loadCart } from "../../store/cartSlice";
+import { formatPrice } from "../../shared/format";
+import { getCustomerId } from "../services/authService";
+import { createOrder, createPayment, processPayment } from "../services/orderService";
+import { getErrorMessage } from "../../shared/api/client";
 import {
-  page,
-  card,
-  title,
-  sectionTitle,
-  goldButton,
-  darkButton,
-  backButton,
+  page, card, title, sectionTitle, goldButton, darkButton, backButton, errorText,
 } from "../../shared/ui";
+
+const METHODS = [
+  { value: "upi", api: "UPI", name: "UPI / Wallet", text: "Pay securely with your preferred UPI app." },
+  { value: "card", api: "CREDIT_CARD", name: "Credit or Debit Card", text: "Demo card payment option." },
+  { value: "cod", api: "CASH_ON_DELIVERY", name: "Cash on Delivery", text: "Pay when your order arrives." },
+];
 
 const Payment = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-
   const cartItems = useSelector((state) => state.cart.items);
+  const products = useSelector((state) => state.products.items);
+  const { items, total } = getCartDetails(cartItems, products);
 
-  const { items, total } = getCartDetails(cartItems);
+  const [method, setMethod] = useState(location.state?.payment || "upi");
+  const [placedOrder, setPlacedOrder] = useState(null);
+  const [pendingOrder, setPendingOrder] = useState(null); // order saved, payment not finished
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  // Store the placed order in local state
-  const [placedOrder, setPlacedOrder] = React.useState(null);
+  // Opened without going through Checkout (e.g. after a refresh).
+  if (!location.state && !placedOrder) return <Navigate to="/checkout" replace />;
 
-  // If user opens Payment directly without Checkout
-  if (!location.state && !placedOrder) {
-    return <Navigate to="/checkout" replace />;
-  }
+  const placeOrder = async () => {
+    setError("");
+    setSubmitting(true);
+    const chosen = METHODS.find((item) => item.value === method);
 
-  const placeOrder = () => {
-    const order = {
-      id: `SS${Date.now().toString().slice(-8)}`,
-      date: new Date().toISOString(),
-      paymentMethod: "Cash on Delivery",
-      status: "Order Placed",
+    try {
+      // 1. Save the order in the database (this also empties the cart).
+      let order = pendingOrder;
+      if (!order) {
+        const { address, city, pin } = location.state;
+        order = await createOrder(getCustomerId(), `${address}, ${city} ${pin}`);
+        setPendingOrder(order);
+        dispatch(loadCart());
+      }
 
-      items: items.map(({ id, quantity, product }) => ({
-        id,
-        name: product.name,
-        image: product.image,
-        price: product.price,
-        quantity,
-      })),
+      // 2. Create the payment and, for online methods, complete it.
+      const payment = await createPayment(order.id, chosen.api);
+      if (chosen.api !== "CASH_ON_DELIVERY") {
+        await processPayment(payment.id, true);
+      }
 
-      total,
-    };
-
-    // Get previous orders
-    const existingOrders = JSON.parse(
-      localStorage.getItem("shop360_orders") || "[]"
-    );
-
-    // Save newest order
-    localStorage.setItem(
-      "shop360_orders",
-      JSON.stringify([order, ...existingOrders])
-    );
-
-    // Show success message
-    setPlacedOrder(order);
-
-    // Clear shopping cart
-    dispatch(clearCart());
+      setPlacedOrder({
+        id: order.orderNumber || `#${order.id}`,
+        total: order.totalAmount ?? total,
+        method: chosen.name,
+      });
+      setPendingOrder(null);
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not complete the payment."));
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const emptyCard = (heading) => (
+    <div style={{ ...card, textAlign: "center", padding: "50px 40px" }}>
+      <h2 style={sectionTitle}>{heading}</h2>
+      <button
+        type="button"
+        onClick={() => navigate("/products")}
+        style={{ ...darkButton, width: "auto", padding: "0 28px" }}
+      >
+        Shop Products
+      </button>
+    </div>
+  );
 
   return (
     <div style={page}>
       <Navbar />
 
-      <main
-        style={{
-          padding: "35px 40px 70px",
-          boxSizing: "border-box",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "760px",
-            margin: "0 auto",
-          }}
-        >
+      <main style={{ padding: "35px 40px 70px", boxSizing: "border-box" }}>
+        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
           {placedOrder ? (
-            /* ================================
-               ORDER PLACED
-            ================================= */
-            <div
-              style={{
-                ...card,
-                textAlign: "center",
-                padding: "50px 40px",
-              }}
-            >
-              <h1 style={title}>Order placed successfully!</h1>
-
-              <p
-                style={{
-                  margin: "0 0 6px",
-                  fontSize: "14px",
-                  color: "#716c64",
-                }}
-              >
+            <div style={{ ...card, textAlign: "center", padding: "50px 40px" }}>
+              <h1 style={title}>Order placed</h1>
+              <p style={{ margin: "0 0 6px", fontSize: "14px", color: "#716c64" }}>
                 Thank you for shopping with Shop360.
               </p>
-
-              <p
-                style={{
-                  margin: "0 0 8px",
-                  fontSize: "14px",
-                  color: "#211f1b",
-                }}
-              >
-                Order ID: <strong>{placedOrder.id}</strong>
+              <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#211f1b" }}>
+                Order {placedOrder.id} · {formatPrice(placedOrder.total)} · {placedOrder.method}
               </p>
-
-              <p
-                style={{
-                  margin: "0 0 24px",
-                  fontSize: "14px",
-                  color: "#211f1b",
-                }}
-              >
-                Total: <strong>{formatPrice(placedOrder.total)}</strong>
-              </p>
-
-              <p
-                style={{
-                  margin: "0 0 24px",
-                  fontSize: "14px",
-                  color: "#716c64",
-                }}
-              >
-                Payment Method: Cash on Delivery
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => navigate("/orders")}
-                  style={{
-                    ...goldButton,
-                    width: "auto",
-                    padding: "0 28px",
-                  }}
-                >
-                  View My Orders
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => navigate("/products")}
-                  style={{
-                    ...darkButton,
-                    width: "auto",
-                    padding: "0 28px",
-                  }}
-                >
-                  Continue Shopping
-                </button>
-              </div>
-            </div>
-          ) : items.length === 0 ? (
-            /* ================================
-               EMPTY CART
-            ================================= */
-            <div
-              style={{
-                ...card,
-                textAlign: "center",
-                padding: "50px 40px",
-              }}
-            >
-              <h2 style={sectionTitle}>Your cart is empty</h2>
-
               <button
                 type="button"
                 onClick={() => navigate("/products")}
-                style={{
-                  ...darkButton,
-                  width: "auto",
-                  padding: "0 28px",
-                }}
+                style={{ ...darkButton, width: "auto", padding: "0 28px" }}
               >
-                Shop Products
+                Continue Shopping
               </button>
             </div>
+          ) : items.length === 0 && !pendingOrder ? (
+            emptyCard("Your cart is empty")
           ) : (
-            /* ================================
-               COD PAYMENT
-            ================================= */
             <>
-              <button
-                type="button"
-                onClick={() => navigate("/checkout")}
-                style={backButton}
-              >
+              <button type="button" onClick={() => navigate("/checkout")} style={backButton}>
                 ← Back to Checkout
               </button>
 
-              <h1
-                style={{
-                  ...title,
-                  marginBottom: "24px",
-                }}
-              >
-                Cash on Delivery
-              </h1>
+              <h1 style={{ ...title, marginBottom: "24px" }}>Secure Payment</h1>
 
-              <div
-                style={{
-                  ...card,
-                  marginBottom: "24px",
-                }}
-              >
-                <h2 style={sectionTitle}>
-                  Payment Method
-                </h2>
+              <div style={{ ...card, marginBottom: "24px" }}>
+                <h2 style={sectionTitle}>Choose payment method</h2>
 
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "14px",
-                    padding: "18px",
-                    border: "1px solid #e5d9c9",
-                    borderRadius: "8px",
-                    backgroundColor: "#fffaf2",
-                  }}
-                >
-                  <input
-                    type="radio"
-                    checked
-                    readOnly
+                {METHODS.map((item) => (
+                  <label
+                    key={item.value}
                     style={{
-                      accentColor: "#b58243",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "14px",
+                      padding: "16px 0",
+                      borderBottom: "1px solid #e5d9c9",
+                      cursor: "pointer",
                     }}
-                  />
+                  >
+                    <input
+                      type="radio"
+                      name="method"
+                      checked={method === item.value}
+                      onChange={() => setMethod(item.value)}
+                      style={{ accentColor: "#b58243" }}
+                    />
+                    <span>
+                      <span style={{ display: "block", fontSize: "16px", fontWeight: "700", color: "#211f1b" }}>
+                        {item.name}
+                      </span>
+                      <span style={{ fontSize: "13px", color: "#716c64" }}>{item.text}</span>
+                    </span>
+                  </label>
+                ))}
 
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "700",
-                        color: "#211f1b",
-                      }}
-                    >
-                      Cash on Delivery
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        color: "#716c64",
-                        marginTop: "4px",
-                      }}
-                    >
-                      Pay when your order arrives at your doorstep.
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginTop: "22px",
-                    paddingTop: "16px",
-                    borderTop: "1px solid #e5d9c9",
-                    fontSize: "17px",
-                    fontWeight: "700",
-                    color: "#211f1b",
-                  }}
-                >
-                  <span>Total Amount</span>
-
-                  <span>{formatPrice(total)}</span>
-                </div>
+                {error && <p style={{ ...errorText, marginTop: "14px" }}>{error}</p>}
 
                 <button
                   type="button"
                   onClick={placeOrder}
-                  style={{
-                    ...goldButton,
-                    marginTop: "22px",
-                  }}
+                  disabled={submitting}
+                  style={{ ...goldButton, marginTop: "22px", opacity: submitting ? 0.7 : 1 }}
                 >
-                  Place Order — Cash on Delivery
+                  {submitting
+                    ? "Processing..."
+                    : pendingOrder
+                    ? "Retry Payment"
+                    : "Pay Securely & Place Order"}
                 </button>
               </div>
 
-              <OrderSummary
-                items={items}
-                total={total}
-              />
+              {!pendingOrder && <OrderSummary items={items} total={total} />}
             </>
           )}
         </div>
