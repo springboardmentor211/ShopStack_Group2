@@ -1,6 +1,7 @@
 package com.shopstack.review.repository;
 
 import com.shopstack.review.entity.Review;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,7 +10,11 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    @EntityGraph(attributePaths = {"customer", "product"})
     List<Review> findByProductIdOrderByCreatedAtDesc(Long productId);
+
+    @EntityGraph(attributePaths = {"customer", "product"})
+    List<Review> findByProductIdInOrderByCreatedAtDesc(Iterable<Long> productIds);
 
     List<Review> findByCustomerId(Long customerId);
 

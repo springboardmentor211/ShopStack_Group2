@@ -18,7 +18,7 @@ public class WishlistController {
     private final WishlistService wishlistService;
 
     // POST: Add product to wishlist
-    @PostMapping
+    @PostMapping({"", "/items"})
     public ResponseEntity<WishlistResponse> addToWishlist(
             @PathVariable Long customerId,
             @Valid @RequestBody WishlistRequest request) {
@@ -33,7 +33,7 @@ public class WishlistController {
     }
 
     // DELETE: Remove product from wishlist
-    @DeleteMapping("/products/{productId}")
+    @DeleteMapping({"/products/{productId}", "/items/{productId}"})
     public ResponseEntity<Void> removeFromWishlist(
             @PathVariable Long customerId,
             @PathVariable Long productId) {

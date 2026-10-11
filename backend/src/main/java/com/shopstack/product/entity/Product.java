@@ -27,6 +27,12 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(name = "old_price")
+    private BigDecimal oldPrice;
+
+    @Column(name = "discount_percentage")
+    private Double discount;
+
     private Integer stockQuantity;
 
     private String category;

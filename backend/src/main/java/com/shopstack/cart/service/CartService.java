@@ -7,6 +7,7 @@ import com.shopstack.cart.entity.Cart;
 import com.shopstack.cart.entity.CartItem;
 import com.shopstack.cart.repository.CartItemRepository;
 import com.shopstack.cart.repository.CartRepository;
+import com.shopstack.common.exception.ResourceNotFoundException;
 import com.shopstack.customer.entity.Customer;
 import com.shopstack.customer.repository.CustomerRepository;
 import com.shopstack.product.entity.Product;
@@ -41,14 +42,11 @@ public class CartService {
         Cart cart = getOrCreateCart(customerId);
 
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + request.getProductId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found with id: " + request.getProductId()));
 
         if (!product.isActive()) {
-            throw new RuntimeException("Product is currently unavailable");
-        }
-
-        if (product.getStockQuantity() < request.getQuantity()) {
-            throw new RuntimeException("Insufficient stock quantity available");
+            throw new IllegalArgumentException("Product is currently unavailable");
         }
 
         // Check if item already exists in cart
@@ -56,9 +54,12 @@ public class CartService {
 
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + request.getQuantity());
+            int updatedQuantity = item.getQuantity() + request.getQuantity();
+            validateStock(product, updatedQuantity);
+            item.setQuantity(updatedQuantity);
             cartItemRepository.save(item);
         } else {
+            validateStock(product, request.getQuantity());
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .product(product)
@@ -75,13 +76,34 @@ public class CartService {
         return mapToCartResponse(updatedCart);
     }
 
+    // Update item quantity in the cart and recalculate the cart total.
+    @Transactional
+    public CartResponse updateCartItemQuantity(Long customerId, Long cartItemId, Integer quantity) {
+        CartItem item = cartItemRepository.findByIdAndCartCustomerId(cartItemId, customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Cart item not found for customer: " + customerId));
+
+        Product product = item.getProduct();
+        if (!product.isActive()) {
+            throw new IllegalArgumentException("Product is currently unavailable");
+        }
+        validateStock(product, quantity);
+
+        item.setQuantity(quantity);
+        Cart cart = item.getCart();
+        recalculateCartTotal(cart);
+        cartItemRepository.save(item);
+        Cart updatedCart = cartRepository.save(cart);
+        return mapToCartResponse(updatedCart);
+    }
+
     // Remove item from cart
     @Transactional
     public CartResponse removeItemFromCart(Long customerId, Long productId) {
         Cart cart = getOrCreateCart(customerId);
 
         CartItem itemToRemove = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
-                .orElseThrow(() -> new RuntimeException("Item not found in cart"));
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found in cart"));
 
         cart.getItems().remove(itemToRemove);
         cartItemRepository.delete(itemToRemove);
@@ -96,7 +118,8 @@ public class CartService {
         return cartRepository.findByCustomerId(customerId)
                 .orElseGet(() -> {
                     Customer customer = customerRepository.findById(customerId)
-                            .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Customer not found with id: " + customerId));
 
                     Cart newCart = Cart.builder()
                             .customer(customer)
@@ -105,6 +128,12 @@ public class CartService {
 
                     return cartRepository.save(newCart);
                 });
+    }
+
+    private void validateStock(Product product, Integer quantity) {
+        if (product.getStockQuantity() == null || product.getStockQuantity() < quantity) {
+            throw new IllegalArgumentException("Insufficient stock quantity available");
+        }
     }
 
     // Recalculate total price of cart

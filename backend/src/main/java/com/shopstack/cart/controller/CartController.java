@@ -2,6 +2,7 @@ package com.shopstack.cart.controller;
 
 import com.shopstack.cart.dto.AddToCartRequest;
 import com.shopstack.cart.dto.CartResponse;
+import com.shopstack.cart.dto.UpdateCartItemRequest;
 import com.shopstack.cart.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,16 @@ public class CartController {
             @PathVariable Long customerId,
             @Valid @RequestBody AddToCartRequest request) {
         return ResponseEntity.ok(cartService.addItemToCart(customerId, request));
+    }
+
+    // PUT: Update the quantity of an item in the customer's cart
+    @PutMapping("/items/{cartItemId}")
+    public ResponseEntity<CartResponse> updateCartItemQuantity(
+            @PathVariable Long customerId,
+            @PathVariable Long cartItemId,
+            @Valid @RequestBody UpdateCartItemRequest request) {
+        return ResponseEntity.ok(
+                cartService.updateCartItemQuantity(customerId, cartItemId, request.getQuantity()));
     }
 
     // DELETE: Remove item from cart by product ID
