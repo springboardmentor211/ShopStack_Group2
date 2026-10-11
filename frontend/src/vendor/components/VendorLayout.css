@@ -1,0 +1,354 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@500;600;700&display=swap');
+
+:root {
+  --vendor-paper: #fff9f0;
+  --vendor-surface: #fffdf8;
+  --vendor-cream: #f4e8d7;
+  --vendor-gold: #b7894f;
+  --vendor-black: #211e1a;
+  --vendor-text: #2c2925;
+  --vendor-muted: #827b72;
+  --vendor-border: #eadfce;
+}
+
+
+/* =========================================
+   MAIN LAYOUT
+========================================= */
+
+.vendor-layout {
+  min-height: 100vh;
+  background: var(--vendor-paper);
+  color: var(--vendor-text);
+  font-family: "DM Sans", sans-serif;
+}
+
+
+/* =========================================
+   TOP BAR
+========================================= */
+
+.vendor-topbar {
+  height: 35px;
+  padding: 0 32px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: var(--vendor-black);
+  color: white;
+
+  font-size: 12px;
+}
+
+.vendor-topbar strong {
+  font-weight: 600;
+}
+
+.vendor-topbar span {
+  color: #d4cec5;
+}
+
+.vendor-workspace {
+  font-size: 12px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.vendor-header {
+  height: 94px;
+  padding: 18px 32px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: var(--vendor-surface);
+  border-bottom: 1px solid var(--vendor-border);
+}
+
+.vendor-label {
+  margin: 0 0 4px;
+
+  color: var(--vendor-gold);
+
+  font-size: 17px;
+  font-weight: 700;
+
+  letter-spacing: 1.7px;
+}
+
+.vendor-header h1 {
+  margin: 0;
+
+  font-family: "Fraunces", serif;
+
+  font-size: 27px;
+
+  color: #171513;
+}
+
+.vendor-store-name {
+  color: #756e65;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+
+/* =========================================
+   MAIN AREA
+========================================= */
+
+.vendor-main-layout {
+  display: grid;
+
+  grid-template-columns: 230px 1fr;
+
+  gap: 28px;
+
+  padding: 28px 32px;
+}
+
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.vendor-sidebar {
+  height: fit-content;
+
+  padding: 20px 10px;
+
+  background: var(--vendor-surface);
+
+  border: 1px solid var(--vendor-border);
+
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+.vendor-sidebar h2 {
+  margin: 0 12px 14px;
+
+  color: var(--vendor-gold);
+
+  font-size: 18px;
+  font-weight: 700;
+
+  letter-spacing: 1.4px;
+}
+
+
+/* =========================================
+   NAVIGATION
+========================================= */
+
+.vendor-sidebar nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+/* Individual navigation item */
+
+.vendor-nav-item {
+  min-height: 43px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  border-radius: 8px;
+
+  color: var(--vendor-text);
+
+  text-decoration: none;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* =========================================
+   LUCIDE ICONS
+========================================= */
+
+.vendor-nav-item svg {
+  width: 18px;
+  height: 18px;
+
+  min-width: 18px;
+
+  flex-shrink: 0;
+
+  color: currentColor;
+
+  stroke-width: 2;
+}
+
+
+/* =========================================
+   HOVER
+========================================= */
+
+.vendor-nav-item:hover {
+  background: #f7f7f7;
+}
+
+
+/* =========================================
+   ACTIVE PAGE
+========================================= */
+
+.vendor-nav-item.active {
+  background: #191919;
+
+  color: #ffffff;
+}
+
+.vendor-nav-item.active svg {
+  color: #ffffff;
+}
+
+
+/* =========================================
+   PAGE CONTENT
+========================================= */
+
+.vendor-page-content {
+  min-width: 0;
+}
+
+
+/* =========================================
+   RESPONSIVE - TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .vendor-main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .vendor-sidebar {
+    width: 100%;
+  }
+
+}
+
+
+/* =========================================
+   RESPONSIVE - MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+
+  .vendor-topbar {
+    height: auto;
+    min-height: 35px;
+
+    padding: 8px 20px;
+
+    gap: 10px;
+  }
+
+  .vendor-header {
+    height: auto;
+    min-height: 94px;
+
+    padding: 18px 20px;
+
+    gap: 15px;
+  }
+
+  .vendor-main-layout {
+    padding: 20px;
+
+    gap: 20px;
+  }
+
+  .vendor-sidebar {
+    padding: 18px 10px;
+  }
+
+  .vendor-sidebar nav {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 4px;
+  }
+
+  .vendor-nav-item {
+    min-height: 43px;
+
+    padding: 0 12px;
+
+    font-size: 14px;
+  }
+
+  .vendor-nav-item svg {
+    width: 18px;
+    height: 18px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL SCREENS
+========================================= */
+
+@media (max-width: 450px) {
+
+  .vendor-topbar {
+    padding: 8px 14px;
+
+    font-size: 11px;
+  }
+
+  .vendor-workspace {
+    display: none;
+  }
+
+  .vendor-header {
+    padding: 16px;
+  }
+
+  .vendor-label {
+    font-size: 14px;
+  }
+
+  .vendor-header h1 {
+    font-size: 24px;
+  }
+
+  .vendor-store-name {
+    font-size: 13px;
+  }
+
+  .vendor-main-layout {
+    padding: 14px;
+  }
+
+  .vendor-sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
+}
