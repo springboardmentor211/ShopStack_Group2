@@ -1,11 +1,13 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
-import products, { formatPrice } from "../../shared/data/products";
+import { useSelector } from "react-redux";
+import { formatPrice } from "../../shared/format";
 import WishlistButton from "../components/WishlistButton";
 import AddToCartButton from "../components/AddToCartButton";
 const Home = () => {
   const navigate = useNavigate();
+  const products = useSelector((state) => state.products.items);
   return (
     <div
       style={{
@@ -1078,7 +1080,8 @@ const Home = () => {
           <WishlistButton productId={product.id} />
 
           {/* DISCOUNT BADGE */}
-          <div
+          {product.discount && (
+<div
             style={{
               position: "absolute",
               top: "13px",
@@ -1094,6 +1097,7 @@ const Home = () => {
           >
             {product.discount}
           </div>
+)}
         </div>
 
         {/* PRODUCT DETAILS */}
@@ -1116,7 +1120,8 @@ const Home = () => {
           </h3>
 
           {/* RATING */}
-          <div
+          {product.rating && (
+<div
             style={{
               display: "flex",
               alignItems: "center",
@@ -1151,6 +1156,7 @@ const Home = () => {
               ({product.reviews})
             </span>
           </div>
+)}
 
           {/* PRICE */}
           <div
@@ -1172,7 +1178,8 @@ const Home = () => {
               {formatPrice(product.price)}
             </span>
 
-            <span
+            {product.oldPrice && (
+<span
               style={{
                 fontSize: "13px",
                 color: "#9b9287",
@@ -1181,8 +1188,10 @@ const Home = () => {
             >
               {formatPrice(product.oldPrice)}
             </span>
+)}
 
-            <span
+            {product.discount && (
+<span
               style={{
                 fontSize: "13px",
                 color: "#b58243",
@@ -1191,6 +1200,7 @@ const Home = () => {
             >
               {product.discount}
             </span>
+)}
           </div>
 
           {/* VIEW PRODUCT BUTTON */}

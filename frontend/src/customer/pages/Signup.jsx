@@ -40,12 +40,11 @@ const Signup = () => {
     setSubmitting(false);
 
     if (!result.ok) {
-      setErrors({
-        email:
-          result.error === "exists"
-            ? "An account with this email already exists. Please sign in."
-            : "Could not save your account. Please try again.",
-      });
+      setErrors(
+        result.error === "exists"
+          ? { email: "An account with this email already exists. Please sign in." }
+          : { form: result.message }
+      );
       return;
     }
 
@@ -122,6 +121,8 @@ const Signup = () => {
                 <p style={errorText}>{errors.confirmPassword}</p>
               )}
             </div>
+
+            {errors.form && <p style={{ ...errorText, margin: "0 0 12px" }}>{errors.form}</p>}
 
             <button type="submit" disabled={submitting} style={darkButton}>
               {submitting ? "Creating account..." : "Continue"}

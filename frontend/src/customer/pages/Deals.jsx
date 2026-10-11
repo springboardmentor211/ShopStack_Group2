@@ -1,12 +1,16 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
-import products, { formatPrice } from "../../shared/data/products";
+import { useSelector } from "react-redux";
+import { formatPrice } from "../../shared/format";
 import WishlistButton from "../components/WishlistButton";
 import AddToCartButton from "../components/AddToCartButton";
 
 const Deals = () => {
   const navigate = useNavigate();
+  const products = useSelector((state) => state.products.items);
+  const productsStatus = useSelector((state) => state.products.status);
+  const productsError = useSelector((state) => state.products.error);
 
   // Deals shows the first six products from the shared list.
   const deals = products.slice(0, 6);
@@ -99,6 +103,26 @@ const Deals = () => {
             gap: "18px",
           }}
         >
+          {deals.length === 0 && (
+            <div
+              style={{
+                gridColumn: "1 / -1",
+                backgroundColor: "#ffffff",
+                border: "1px solid #d9c6ad",
+                borderRadius: "14px",
+                padding: "40px",
+                textAlign: "center",
+                color: "#716c64",
+              }}
+            >
+              {productsStatus === "idle" || productsStatus === "loading"
+                ? "Loading products..."
+                : productsStatus === "failed"
+                ? productsError
+                : "No deals available yet."}
+            </div>
+          )}
+
           {deals.map((product) => (
             <div
               key={product.id}
@@ -134,7 +158,8 @@ const Deals = () => {
           <WishlistButton productId={product.id} />
 
                 {/* DISCOUNT */}
-                <div
+                {product.discount && (
+<div
                   style={{
                     position: "absolute",
                     top: "11px",
@@ -150,6 +175,7 @@ const Deals = () => {
                 >
                   {product.discount}
                 </div>
+)}
               </div>
 
               {/* DETAILS */}
@@ -171,7 +197,8 @@ const Deals = () => {
                 </h3>
 
                 {/* RATING */}
-                <div
+                {product.rating && (
+<div
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -206,6 +233,7 @@ const Deals = () => {
                     ({product.reviews})
                   </span>
                 </div>
+)}
 
                 {/* PRICE */}
                 <div
@@ -227,7 +255,8 @@ const Deals = () => {
                     {formatPrice(product.price)}
                   </span>
 
-                  <span
+                  {product.oldPrice && (
+<span
                     style={{
                       fontSize: "13px",
                       color: "#9b9287",
@@ -236,8 +265,10 @@ const Deals = () => {
                   >
                     {formatPrice(product.oldPrice)}
                   </span>
+)}
 
-                  <span
+                  {product.discount && (
+<span
                     style={{
                       fontSize: "13px",
                       color: "#b58243",
@@ -246,6 +277,7 @@ const Deals = () => {
                   >
                     {product.discount}
                   </span>
+)}
                 </div>
 
                 {/* VIEW PRODUCT */}

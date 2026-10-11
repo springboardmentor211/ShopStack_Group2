@@ -1,11 +1,15 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import products, { formatPrice } from "../../shared/data/products";
+import { useSelector } from "react-redux";
+import { formatPrice } from "../../shared/format";
 import WishlistButton from "../components/WishlistButton";
 import AddToCartButton from "../components/AddToCartButton";
 const Products = () => {
   const navigate = useNavigate();
+  const products = useSelector((state) => state.products.items);
+  const productsStatus = useSelector((state) => state.products.status);
+  const productsError = useSelector((state) => state.products.error);
   const [searchParams] = useSearchParams();
   const selectedCategory = searchParams.get("category");
 
@@ -113,7 +117,13 @@ const Products = () => {
             color: "#716c64",
           }}
         >
-          No products found in this category.
+          {productsStatus === "idle" || productsStatus === "loading"
+            ? "Loading products..."
+            : productsStatus === "failed"
+            ? productsError
+            : selectedCategory
+            ? "No products found in this category."
+            : "No products available yet."}
         </div>
       ) : (
         <div
@@ -158,7 +168,8 @@ const Products = () => {
 
           <WishlistButton productId={product.id} />
 
-                <div
+                {product.discount && (
+<div
                   style={{
                     position: "absolute",
                     top: "11px",
@@ -174,6 +185,7 @@ const Products = () => {
                 >
                   {product.discount}
                 </div>
+)}
               </div>
 
               <div
@@ -193,7 +205,8 @@ const Products = () => {
                   {product.name}
                 </h3>
 
-                <div
+                {product.rating && (
+<div
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -228,6 +241,7 @@ const Products = () => {
                     ({product.reviews})
                   </span>
                 </div>
+)}
 
                 <div
                   style={{
@@ -248,7 +262,8 @@ const Products = () => {
                     {formatPrice(product.price)}
                   </span>
 
-                  <span
+                  {product.oldPrice && (
+<span
                     style={{
                       fontSize: "13px",
                       color: "#9b9287",
@@ -257,8 +272,10 @@ const Products = () => {
                   >
                     {formatPrice(product.oldPrice)}
                   </span>
+)}
 
-                  <span
+                  {product.discount && (
+<span
                     style={{
                       fontSize: "13px",
                       color: "#b58243",
@@ -267,6 +284,7 @@ const Products = () => {
                   >
                     {product.discount}
                   </span>
+)}
                 </div>
 
                 <div style={{ display: "flex", gap: "10px" }}>

@@ -5,10 +5,11 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import products from "../../shared/data/products";
+import { useDispatch, useSelector } from "react-redux";
+import { resetCart } from "../../store/cartSlice";
+import { resetWishlist } from "../../store/wishlistSlice";
 import { getUser, logout } from "../services/authService";
 const NAV_CATEGORIES = [
   { label: "All Categories", path: "/products" },
@@ -22,16 +23,22 @@ const NAV_CATEGORIES = [
   { label: "Deals", path: "/deals" },
 ];
 
-// Search uses the shared product list (small thumbnails for suggestions).
-const SEARCH_PRODUCTS = products.map((product) => ({
-  id: product.id,
-  name: product.name,
-  category: product.category,
-  image: product.image.replace("w=1000", "w=200"),
-}));
-
 const Navbar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Search suggestions come from the products loaded from the backend.
+  const products = useSelector((state) => state.products.items);
+  const SEARCH_PRODUCTS = useMemo(
+    () =>
+      products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        image: product.image,
+      })),
+    [products]
+  );
   // Cart badge shows the total number of items in the cart.
   const cartCount = useSelector((state) =>
     state.cart.items.reduce((total, item) => total + item.quantity, 0)
@@ -64,6 +71,8 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
+    dispatch(resetCart());
+    dispatch(resetWishlist());
     setUser(null);
     setShowAccountMenu(false);
     navigate("/");
@@ -846,28 +855,6 @@ const Navbar = () => {
                   >
                     Logout
                   </button>
-
-                  <button
-  type="button"
-  onClick={() => {
-    setShowAccountMenu(false);
-    navigate("/orders");
-  }}
-  style={{
-    width: "100%",
-    height: "38px",
-    border: "1px solid #d9c6ad",
-    borderRadius: "7px",
-    backgroundColor: "#ffffff",
-    color: "#211f1b",
-    fontSize: "13px",
-    fontWeight: "700",
-    cursor: "pointer",
-    marginBottom: "8px",
-  }}
->
-  My Orders
-</button>
                 </div>
               )}
             </div>

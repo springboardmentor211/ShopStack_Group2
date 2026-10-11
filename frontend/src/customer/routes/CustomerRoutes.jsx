@@ -11,7 +11,7 @@ import Signup from "../pages/Signup";
 import Checkout from "../pages/Checkout";
 import Payment from "../pages/Payment";
 import RequireLogin from "../components/RequireLogin";
-import Orders from "../pages/Orders";
+
 const CustomerRoutes = () => {
   return (
     <Routes>
@@ -30,7 +30,6 @@ const CustomerRoutes = () => {
 
       <Route path="/signup/details" element={<Signup />} />
 
-      <Route path="/orders" element={<Orders />} />
       {/* Login required */}
       <Route
         path="/cart"
