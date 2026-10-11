@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class WishlistRequest {
 
-    @NotNull(message = "Customer ID is required")
+    // Filled in from the URL by the controller, so the client does not send it.
     private Long customerId;
 
     @NotNull(message = "Product ID is required")
