@@ -11,34 +11,43 @@
   --vendor-border: #eadfce;
 }
 
-
-/* =========================================
-   MAIN LAYOUT
-========================================= */
-
+/* Main page: force all major sections to stack vertically */
 .vendor-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
   background: var(--vendor-paper);
   color: var(--vendor-text);
   font-family: "DM Sans", sans-serif;
+  box-sizing: border-box;
 }
 
+/* Keep sizing predictable */
+.vendor-layout *,
+.vendor-layout *::before,
+.vendor-layout *::after {
+  box-sizing: border-box;
+}
 
-/* =========================================
-   TOP BAR
-========================================= */
-
+/* Top bar */
 .vendor-topbar {
-  height: 35px;
-  padding: 0 32px;
-
   display: flex;
-  justify-content: space-between;
+  flex: 0 0 auto;
   align-items: center;
-
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  min-height: 35px;
+  padding: 0 32px;
   background: var(--vendor-black);
-  color: white;
-
+  color: #fff;
   font-size: 12px;
 }
 
@@ -51,45 +60,38 @@
 }
 
 .vendor-workspace {
+  flex-shrink: 0;
   font-size: 12px;
 }
 
-
-/* =========================================
-   HEADER
-========================================= */
-
+/* Header must occupy its own full-width row */
 .vendor-header {
-  height: 94px;
-  padding: 18px 32px;
-
   display: flex;
-  justify-content: space-between;
+  flex: 0 0 auto;
   align-items: center;
-
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  min-height: 94px;
+  padding: 18px 32px;
   background: var(--vendor-surface);
   border-bottom: 1px solid var(--vendor-border);
 }
 
 .vendor-label {
   margin: 0 0 4px;
-
   color: var(--vendor-gold);
-
   font-size: 17px;
   font-weight: 700;
-
   letter-spacing: 1.7px;
 }
 
 .vendor-header h1 {
   margin: 0;
-
-  font-family: "Fraunces", serif;
-
-  font-size: 27px;
-
   color: #171513;
+  font-family: "Fraunces", serif;
+  font-size: 27px;
 }
 
 .vendor-store-name {
@@ -98,189 +100,128 @@
   font-weight: 600;
 }
 
-
-/* =========================================
-   MAIN AREA
-========================================= */
-
+/* Sidebar and page content share one grid row */
 .vendor-main-layout {
   display: grid;
-
-  grid-template-columns: 230px 1fr;
-
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
   gap: 28px;
-
+  width: 100%;
+  min-width: 0;
+  flex: 1 0 auto;
+  margin: 0;
   padding: 28px 32px;
 }
 
-
-/* =========================================
-   SIDEBAR
-========================================= */
-
 .vendor-sidebar {
+  width: 100%;
+  min-width: 0;
   height: fit-content;
-
   padding: 20px 10px;
-
   background: var(--vendor-surface);
-
   border: 1px solid var(--vendor-border);
-
   border-radius: 12px;
-
-  box-sizing: border-box;
 }
 
 .vendor-sidebar h2 {
   margin: 0 12px 14px;
-
   color: var(--vendor-gold);
-
   font-size: 18px;
   font-weight: 700;
-
   letter-spacing: 1.4px;
 }
-
-
-/* =========================================
-   NAVIGATION
-========================================= */
 
 .vendor-sidebar nav {
   display: flex;
   flex-direction: column;
-
   gap: 3px;
 }
 
-
-/* Individual navigation item */
-
 .vendor-nav-item {
-  min-height: 43px;
-
   display: flex;
   align-items: center;
-
   gap: 13px;
-
+  min-height: 43px;
+  min-width: 0;
   padding: 0 13px;
-
-  box-sizing: border-box;
-
   border-radius: 8px;
-
   color: var(--vendor-text);
-
   text-decoration: none;
-
   font-size: 16px;
   font-weight: 600;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-
-
-/* =========================================
-   LUCIDE ICONS
-========================================= */
 
 .vendor-nav-item svg {
   width: 18px;
   height: 18px;
-
   min-width: 18px;
-
   flex-shrink: 0;
-
   color: currentColor;
-
   stroke-width: 2;
 }
 
-
-/* =========================================
-   HOVER
-========================================= */
-
 .vendor-nav-item:hover {
-  background: #f7f7f7;
+  background: #f7f0e6;
 }
 
-
-/* =========================================
-   ACTIVE PAGE
-========================================= */
-
 .vendor-nav-item.active {
-  background: #191919;
-
-  color: #ffffff;
+  background: var(--vendor-black);
+  color: #fff;
 }
 
 .vendor-nav-item.active svg {
-  color: #ffffff;
+  color: #fff;
 }
 
-
-/* =========================================
-   PAGE CONTENT
-========================================= */
-
+/* Every routed page stays within the available column */
 .vendor-page-content {
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-
-/* =========================================
-   RESPONSIVE - TABLET
-========================================= */
-
+/* Tablet */
 @media (max-width: 900px) {
-
   .vendor-main-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 20px;
+    padding: 24px;
   }
 
-  .vendor-sidebar {
-    width: 100%;
+  .vendor-sidebar h2 {
+    font-size: 15px;
+    letter-spacing: 1px;
   }
 
+  .vendor-nav-item {
+    gap: 9px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
 }
 
-
-/* =========================================
-   RESPONSIVE - MOBILE
-========================================= */
-
+/* Mobile */
 @media (max-width: 650px) {
-
   .vendor-topbar {
-    height: auto;
+    flex-wrap: wrap;
     min-height: 35px;
-
     padding: 8px 20px;
-
-    gap: 10px;
+    gap: 8px;
   }
 
   .vendor-header {
-    height: auto;
     min-height: 94px;
-
     padding: 18px 20px;
-
     gap: 15px;
   }
 
   .vendor-main-layout {
-    padding: 20px;
-
+    grid-template-columns: minmax(0, 1fr);
     gap: 20px;
+    padding: 20px;
   }
 
   .vendor-sidebar {
@@ -289,37 +230,21 @@
 
   .vendor-sidebar nav {
     display: grid;
-
-    grid-template-columns: repeat(2, 1fr);
-
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
   }
 
   .vendor-nav-item {
     min-height: 43px;
-
     padding: 0 12px;
-
     font-size: 14px;
   }
-
-  .vendor-nav-item svg {
-    width: 18px;
-    height: 18px;
-  }
-
 }
 
-
-/* =========================================
-   VERY SMALL SCREENS
-========================================= */
-
+/* Small mobile */
 @media (max-width: 450px) {
-
   .vendor-topbar {
     padding: 8px 14px;
-
     font-size: 11px;
   }
 
@@ -341,6 +266,7 @@
 
   .vendor-store-name {
     font-size: 13px;
+    text-align: right;
   }
 
   .vendor-main-layout {
@@ -348,7 +274,6 @@
   }
 
   .vendor-sidebar nav {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
-
 }

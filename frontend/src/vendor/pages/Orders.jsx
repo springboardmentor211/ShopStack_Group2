@@ -1,16 +1,6 @@
-import React, { useMemo, useState } from "react";
 
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingBag,
-  Boxes,
-  BarChart3,
-  Percent,
-  Settings,
-  Download,
-  Store,
-} from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { Download } from "lucide-react";
 
 import OrdersFilters from "../components/OrdersFilters";
 import OrdersTable from "../components/OrdersTable";
@@ -62,7 +52,7 @@ const initialOrders = [
   },
 ];
 
-function Orders({ onProductsClick }) {
+function Orders() {
   const [orders, setOrders] = useState(initialOrders);
 
   const [currentPage, setCurrentPage] = useState("orders");
@@ -73,6 +63,12 @@ function Orders({ onProductsClick }) {
   const [dateFilter, setDateFilter] = useState("All dates");
 
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(window.shopstackOrdersToastTimer);
+    };
+  }, []);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -98,7 +94,9 @@ function Orders({ onProductsClick }) {
   const showToast = (message) => {
     setToast(message);
 
-    setTimeout(() => {
+    window.clearTimeout(window.shopstackOrdersToastTimer);
+
+    window.shopstackOrdersToastTimer = window.setTimeout(() => {
       setToast("");
     }, 2500);
   };
@@ -130,30 +128,26 @@ function Orders({ onProductsClick }) {
   const updateOrderStatus = () => {
     if (!selectedOrder) return;
 
-    let newStatus = selectedOrder.status;
-
-    if (selectedOrder.status === "Pending") {
-      newStatus = "Processing";
-    } else if (selectedOrder.status === "Processing") {
-      newStatus = "Shipped";
-    } else if (selectedOrder.status === "Shipped") {
-      newStatus = "Delivered";
-    }
+    const nextStatus = {
+      Pending: "Processing",
+      Processing: "Shipped",
+      Shipped: "Delivered",
+      Delivered: "Delivered",
+    };
 
     const updatedOrder = {
       ...selectedOrder,
-      status: newStatus,
+      status: nextStatus[selectedOrder.status] || selectedOrder.status,
     };
 
-    setOrders((currentOrders) =>
-      currentOrders.map((order) =>
+    setOrders((current) =>
+      current.map((order) =>
         order.id === selectedOrder.id ? updatedOrder : order
       )
     );
 
     setSelectedOrder(updatedOrder);
-
-    showToast(`Order status updated to ${newStatus}`);
+    showToast(`Order status updated to ${updatedOrder.status}`);
   };
 
   const exportOrders = () => {
@@ -166,6 +160,9 @@ function Orders({ onProductsClick }) {
       "Status",
     ];
 
+    const escapeCsv = (value) =>
+      `"${String(value).replace(/"/g, '""')}"`;
+
     const rows = filteredOrders.map((order) => [
       order.id,
       order.customer,
@@ -176,226 +173,97 @@ function Orders({ onProductsClick }) {
     ]);
 
     const csv = [
-      headers.join(","),
-      ...rows.map((row) => row.join(",")),
-    ].join("\n");
+      headers.map(escapeCsv).join(","),
+      ...rows.map((row) => row.map(escapeCsv).join(",")),
+    ].join("\r\n");
 
-    const blob = new Blob([csv], {
+    const blob = new Blob(["\uFEFF", csv], {
       type: "text/csv;charset=utf-8;",
     });
 
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
+
     link.href = url;
     link.download = "orders.csv";
 
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
 
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
 
     showToast("Orders exported successfully");
   };
 
   return (
     <div className="vendor-orders-app">
-
-      {/* TOP UTILITY BAR */}
-      <div className="vendor-utility-bar">
-        <div>
-          SHOPSTACK Vendor Centre • Manage your catalogue with confidence
-        </div>
-
-        <div>
-          Vendor workspace
-        </div>
-      </div>
-
-      {/* HEADER */}
-      <header className="vendor-header">
-
-        <div className="vendor-brand">
-          <div className="vendor-brand-name">
-            VENDOR CENTRE
-          </div>
-
-          <div className="vendor-logo">
-            SHOPSTACK
-          </div>
-        </div>
-
-        <div className="vendor-store">
-          <Store size={17} />
-          North & Form Store
-        </div>
-
-      </header>
-
-      <div className="vendor-layout">
-
-        {/* SIDEBAR */}
-        <aside className="vendor-sidebar">
-
-          <div className="vendor-sidebar-label">
-            VENDOR PORTAL
-          </div>
-
-          <nav>
-
-            <button
-              type="button"
-              className="vendor-nav-item"
-              onClick={() =>
-                showToast("Dashboard selected")
-              }
-            >
-              <LayoutDashboard size={18} />
-              <span>Dashboard</span>
-            </button>
-
-            <button
-              type="button"
-              className="vendor-nav-item"
-              onClick={onProductsClick}
-            >
-              <Package size={18} />
-              <span>Products</span>
-            </button>
-
-            <button
-              type="button"
-              className="vendor-nav-item active"
-            >
-              <ShoppingBag size={18} />
-              <span>Orders</span>
-            </button>
-
-            <button
-              type="button"
-              className="vendor-nav-item"
-              onClick={() =>
-                showToast("Inventory selected")
-              }
-            >
-              <Boxes size={18} />
-              <span>Inventory</span>
-            </button>
-
-            <button
-              type="button"
-              className="vendor-nav-item"
-              onClick={() =>
-                showToast("Analytics selected")
-              }
-            >
-              <BarChart3 size={18} />
-              <span>Analytics</span>
-            </button>
-
-            {/* OFFERS & COUPONS */}
-            <button
-              type="button"
-              className="vendor-nav-item"
-              onClick={() =>
-                showToast("Offers & Coupons selected")
-              }
-            >
-              <Percent size={18} />
-              <span>Offers &amp; Coupons</span>
-            </button>
-
-            <button
-              type="button"
-              className="vendor-nav-item"
-              onClick={() =>
-                showToast("Settings selected")
-              }
-            >
-              <Settings size={18} />
-              <span>Settings</span>
-            </button>
-
-          </nav>
-
-        </aside>
-
-        {/* MAIN */}
-        <main className="vendor-orders-main">
-
-          {currentPage === "orders" && (
-            <>
-              <section className="orders-heading">
-
-                <div>
-                  <div className="orders-eyebrow">
-                    ORDER MANAGEMENT
-                  </div>
-
-                  <h1>Orders</h1>
-
-                  <p>
-                    Manage and track your customer orders from one place.
-                  </p>
+      <main className="vendor-orders-main">
+        {currentPage === "orders" && (
+          <>
+            <section className="orders-heading">
+              <div>
+                <div className="orders-eyebrow">
+                  ORDER MANAGEMENT
                 </div>
 
-                <button
-                  type="button"
-                  className="export-button"
-                  onClick={exportOrders}
-                >
-                  <Download size={16} />
-                  Export Orders
-                </button>
+                <h1>Orders</h1>
 
-              </section>
+                <p>
+                  Manage and track your customer orders from one place.
+                </p>
+              </div>
 
-              <OrdersFilters
-                search={search}
-                setSearch={setSearch}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                dateFilter={dateFilter}
-                setDateFilter={setDateFilter}
-              />
+              <button
+                type="button"
+                className="export-button"
+                onClick={exportOrders}
+              >
+                <Download size={16} />
+                Export Orders
+              </button>
+            </section>
 
-              <OrdersTable
-                orders={filteredOrders}
-                onOpenOrder={openOrder}
-                onResetFilters={resetFilters}
-                totalOrders={orders.length}
-              />
-            </>
-          )}
-
-          {currentPage === "details" && selectedOrder && (
-            <OrderDetails
-              order={selectedOrder}
-              onBack={backToOrders}
-              onUpdateStatus={updateOrderStatus}
-              onViewShipment={openShipment}
+            <OrdersFilters
+              search={search}
+              setSearch={setSearch}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              dateFilter={dateFilter}
+              setDateFilter={setDateFilter}
             />
-          )}
 
-          {currentPage === "shipment" && selectedOrder && (
-            <ShipmentTracking
-              order={selectedOrder}
-              onBack={backToDetails}
+            <OrdersTable
+              orders={filteredOrders}
+              onOpenOrder={openOrder}
+              onResetFilters={resetFilters}
+              totalOrders={orders.length}
             />
-          )}
+          </>
+        )}
 
-        </main>
+        {currentPage === "details" && selectedOrder && (
+          <OrderDetails
+            order={selectedOrder}
+            onBack={backToOrders}
+            onUpdateStatus={updateOrderStatus}
+            onViewShipment={openShipment}
+          />
+        )}
 
-      </div>
+        {currentPage === "shipment" && selectedOrder && (
+          <ShipmentTracking
+            order={selectedOrder}
+            onBack={backToDetails}
+          />
+        )}
+      </main>
 
-      {/* TOAST */}
       {toast && (
-        <div className="orders-toast">
+        <div className="orders-toast" role="status">
           {toast}
         </div>
       )}
-
     </div>
   );
 }

@@ -24,12 +24,18 @@ function App() {
 
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="offers-coupons" element={<OffersCoupons />} />
+          <Route path="settings" element={<Settings />} />
+
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="analytics" element={<Analytics />} />
-          <Route path="settings" element={<Settings />} />
         </Route>
+
+        <Route
+          path="/"
+          element={<Navigate to="/vendor/dashboard" replace />}
+        />
 
         <Route
           path="*"

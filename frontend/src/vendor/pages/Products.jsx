@@ -1,15 +1,7 @@
+
 import { useEffect, useState } from "react";
-import {
-  Store,
-  LayoutDashboard,
-  Package,
-  ShoppingBag,
-  Boxes,
-  BarChart3,
-  Percent,
-  Settings,
-  Plus,
-} from "lucide-react";
+import { Plus } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 import "./Products.css";
 
@@ -17,21 +9,21 @@ import ProductFilters from "../components/ProductFilters";
 import ProductTable from "../components/ProductTable";
 import ProductForm from "../components/ProductForm";
 
-function Products({ onOrdersClick }) {
+function Products() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState("");
 
   const [products, setProducts] = useState(() => {
-    const savedProducts = localStorage.getItem("shopstack-products");
-
-    if (!savedProducts) {
-      return [];
-    }
-
     try {
+      const savedProducts = localStorage.getItem("shopstack-products");
+
+      if (!savedProducts) return [];
+
       const parsedProducts = JSON.parse(savedProducts);
+
+      if (!Array.isArray(parsedProducts)) return [];
 
       return parsedProducts.map((product, index) => ({
         ...product,
@@ -52,10 +44,13 @@ function Products({ onOrdersClick }) {
       "shopstack-products",
       JSON.stringify(products)
     );
+    setIsLoading(false);
   }, [products]);
 
   useEffect(() => {
-    setIsLoading(false);
+    return () => {
+      window.clearTimeout(window.shopstackToastTimer);
+    };
   }, []);
 
   const showToast = (message) => {
@@ -78,18 +73,12 @@ function Products({ onOrdersClick }) {
         sku.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCategory =
-        categoryFilter === "" ||
-        product.category === categoryFilter;
+        !categoryFilter || product.category === categoryFilter;
 
       const matchesStatus =
-        statusFilter === "" ||
-        product.status === statusFilter;
+        !statusFilter || product.status === statusFilter;
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesStatus
-      );
+      return matchesSearch && matchesCategory && matchesStatus;
     })
     .sort((a, b) =>
       (a.name || "").localeCompare(b.name || "")
@@ -106,10 +95,8 @@ function Products({ onOrdersClick }) {
   };
 
   const handleDeleteProduct = (id) => {
-    setProducts((currentProducts) =>
-      currentProducts.filter(
-        (product) => product.id !== id
-      )
+    setProducts((current) =>
+      current.filter((product) => product.id !== id)
     );
 
     showToast("Product deleted.");
@@ -117,21 +104,17 @@ function Products({ onOrdersClick }) {
 
   const handleSaveProduct = (product) => {
     if (editingProduct) {
-      setProducts((currentProducts) =>
-        currentProducts.map((item) =>
+      setProducts((current) =>
+        current.map((item) =>
           item.id === editingProduct.id
-            ? product
+            ? { ...product, id: editingProduct.id }
             : item
         )
       );
 
       showToast("Product updated successfully.");
     } else {
-      setProducts((currentProducts) => [
-        ...currentProducts,
-        product,
-      ]);
-
+      setProducts((current) => [...current, product]);
       showToast("Product added successfully.");
     }
 
@@ -145,172 +128,77 @@ function Products({ onOrdersClick }) {
   };
 
   return (
-    <div className="products-page">
-      {/* TOP UTILITY BAR */}
-      <div className="utility-bar">
-        <div className="workspace-wrap utility-content">
-          <span className="utility-copy">
-            SHOPSTACK Vendor Centre&nbsp; • &nbsp;
-            Manage your catalogue with confidence
-          </span>
-
-          <span>Vendor workspace</span>
-        </div>
-      </div>
-
-      {/* HEADER */}
-      <header className="vendor-header">
-        <div className="workspace-wrap vendor-header-inner">
+    <div className="products-page page-enter">
+      <section
+        className="products-content"
+        aria-labelledby="products-heading"
+      >
+        <div className="page-heading">
           <div>
-            <p>Vendor Centre</p>
-            <h2>SHOPSTACK</h2>
-          </div>
+            <p className="eyebrow">Catalogue management</p>
 
-          <div className="store-name">
-            <Store size={17} />
-            <span>North &amp; Form Store</span>
-          </div>
-        </div>
-      </header>
+            <h1 id="products-heading">Products</h1>
 
-      {/* MAIN */}
-      <main className="workspace-wrap products-main page-enter">
-        <div className="vendor-layout">
-          {/* SIDEBAR */}
-          <aside className="vendor-sidebar card">
-            <p className="portal-label">
-              Vendor portal
+            <p className="page-description">
+              Create, organise, and keep track of every product
+              in your SHOPSTACK catalogue.
             </p>
+          </div>
 
-            <button className="nav-item">
-              <LayoutDashboard size={16} />
-              <span>Dashboard</span>
-            </button>
-
-            <button
-              className="nav-item active"
-              aria-current="page"
-            >
-              <Package size={16} />
-              <span>Products</span>
-            </button>
-
-            <button
-              className="nav-item"
-              onClick={onOrdersClick}
-            >
-              <ShoppingBag size={16} />
-              <span>Orders</span>
-            </button>
-
-            <button className="nav-item">
-              <Boxes size={16} />
-              <span>Inventory</span>
-            </button>
-
-            <button className="nav-item">
-              <BarChart3 size={16} />
-              <span>Analytics</span>
-            </button>
-
-            {/* OFFERS & COUPONS */}
-            <button className="nav-item">
-              <Percent size={16} />
-              <span>Offers &amp; Coupons</span>
-            </button>
-
-            <button className="nav-item">
-              <Settings size={16} />
-              <span>Settings</span>
-            </button>
-          </aside>
-
-          {/* CONTENT */}
-          <section
-            className="products-content"
-            aria-labelledby="products-heading"
+          <button
+            type="button"
+            className="button button-dark"
+            onClick={handleAddProduct}
           >
-            {/* HEADING */}
-            <div className="page-heading">
-              <div>
-                <p className="eyebrow">
-                  Catalogue management
-                </p>
+            <Plus size={16} />
+            <span>Add Product</span>
+          </button>
+        </div>
 
-                <h1 id="products-heading">
-                  Products
-                </h1>
+        <ProductFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
 
-                <p className="page-description">
-                  Create, organise, and keep track of
-                  every product in your SHOPSTACK
-                  catalogue.
-                </p>
-              </div>
+        <section className="products-card card">
+          <div className="products-card-header">
+            <div>
+              <h2>Your catalogue</h2>
 
-              <button
-                type="button"
-                className="button button-dark"
-                onClick={handleAddProduct}
-              >
-                <Plus size={16} />
-                <span>Add Product</span>
-              </button>
+              <p aria-live="polite">
+                {filteredProducts.length}{" "}
+                {filteredProducts.length === 1
+                  ? "product shown"
+                  : "products shown"}
+              </p>
             </div>
 
-            {/* FILTERS */}
-            <ProductFilters
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              categoryFilter={categoryFilter}
-              setCategoryFilter={setCategoryFilter}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-            />
+            {isLoading && (
+              <span className="loading-indicator">
+                Loading products…
+              </span>
+            )}
+          </div>
 
-            {/* TABLE */}
-            <section className="products-card card">
-              <div className="products-card-header">
-                <div>
-                  <h2>Your catalogue</h2>
+          <ProductTable
+            products={filteredProducts}
+            onEdit={handleEditProduct}
+            onDelete={handleDeleteProduct}
+            onAdd={handleAddProduct}
+          />
+        </section>
+      </section>
 
-                  <p aria-live="polite">
-                    {filteredProducts.length}{" "}
-                    {filteredProducts.length === 1
-                      ? "product shown"
-                      : "products shown"}
-                  </p>
-                </div>
-
-                {isLoading && (
-                  <span className="loading-indicator">
-                    Loading products…
-                  </span>
-                )}
-              </div>
-
-              <ProductTable
-                products={filteredProducts}
-                onEdit={handleEditProduct}
-                onDelete={handleDeleteProduct}
-                onAdd={handleAddProduct}
-              />
-            </section>
-
-            <p className="page-message" />
-          </section>
-        </div>
-      </main>
-
-      {/* BACKDROP */}
       <div
-        className={`panel-backdrop ${
-          isFormOpen ? "open" : ""
-        }`}
+        className={`panel-backdrop ${isFormOpen ? "open" : ""}`}
         onClick={handleCloseForm}
+        aria-hidden="true"
       />
 
-      {/* FORM PANEL */}
       <ProductForm
         product={editingProduct}
         isOpen={isFormOpen}
@@ -318,7 +206,6 @@ function Products({ onOrdersClick }) {
         onSave={handleSaveProduct}
       />
 
-      {/* TOAST */}
       {toast && (
         <div className="toast" role="status">
           {toast}
