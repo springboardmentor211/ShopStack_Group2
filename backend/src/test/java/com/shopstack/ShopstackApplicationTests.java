@@ -2,6 +2,8 @@ package com.shopstack;
 
 import com.shopstack.customer.dto.CustomerResponseDTO;
 import com.shopstack.customer.service.CustomerService;
+import com.shopstack.product.dto.ProductResponse;
+import com.shopstack.product.service.ProductService;
 import com.shopstack.security.jwt.JwtUtils;
 import com.shopstack.security.service.CustomUserDetailsService;
 import com.shopstack.wishlist.dto.WishlistRequest;
@@ -19,6 +21,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,6 +50,9 @@ class ShopstackApplicationTests {
 
 	@MockitoBean
 	private WishlistService wishlistService;
+
+	@MockitoBean
+	private ProductService productService;
 
 	@Test
 	void contextLoads() {
@@ -99,6 +107,27 @@ class ShopstackApplicationTests {
 
 	@ParameterizedTest
 	@CsvSource({
+			"GET, /api/v1/products",
+			"GET, /api/v1/products/1",
+			"GET, /api/v1/products/category/books"
+	})
+	void productCatalogReadsDoNotRequireAuthentication(String method, String path) throws Exception {
+		when(productService.getAllActiveProducts()).thenReturn(List.of());
+		when(productService.getProductById(1L)).thenReturn(ProductResponse.builder().id(1L).build());
+		when(productService.getProductsByCategory("books")).thenReturn(List.of());
+
+		mockMvc.perform(request(HttpMethod.valueOf(method), path))
+				.andExpect(status().is2xxSuccessful());
+	}
+
+	@Test
+	void errorEndpointDoesNotRequireAuthentication() throws Exception {
+		mockMvc.perform(get("/error"))
+				.andExpect(result -> assertNotEquals(401, result.getResponse().getStatus()));
+	}
+
+	@ParameterizedTest
+	@CsvSource({
 			"GET, /api/v1/customers/1",
 			"PUT, /api/v1/customers/1",
 			"POST, /api/v1/customers/1/addresses",
@@ -109,9 +138,6 @@ class ShopstackApplicationTests {
 			"PUT, /api/v1/customers/1/cart/items/1",
 			"DELETE, /api/v1/customers/1/cart/items/1",
 			"POST, /api/v1/products",
-			"GET, /api/v1/products",
-			"GET, /api/v1/products/1",
-			"GET, /api/v1/products/category/books",
 			"PUT, /api/v1/products/1",
 			"DELETE, /api/v1/products/1",
 			"POST, /api/v1/coupons/apply",
