@@ -3,7 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import WishlistButton from "../components/WishlistButton";
+<<<<<<< HEAD
 import { formatPrice } from "../../shared/format";
+=======
+import { getProductById, formatPrice } from "../../shared/data/products";
+>>>>>>> origin/warehouse-module
 import { addToCart } from "../../store/cartSlice";
 import { removeFromWishlist } from "../../store/wishlistSlice";
 
@@ -11,6 +15,7 @@ const Wishlist = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const wishlistIds = useSelector((state) => state.wishlist.ids);
+<<<<<<< HEAD
   const products = useSelector((state) => state.products.items);
   const wishlistStatus = useSelector((state) => state.wishlist.status);
 
@@ -21,6 +26,15 @@ const Wishlist = () => {
   const moveToCart = async (id) => {
     const result = await dispatch(addToCart({ id, quantity: 1 }));
     if (addToCart.rejected.match(result)) return;
+=======
+
+  const wishlistProducts = wishlistIds
+    .map((id) => getProductById(id))
+    .filter(Boolean);
+
+  const moveToCart = (id) => {
+    dispatch(addToCart({ id, quantity: 1 }));
+>>>>>>> origin/warehouse-module
     dispatch(removeFromWishlist(id));
   };
 
@@ -111,7 +125,11 @@ const Wishlist = () => {
                 color: "#211f1b",
               }}
             >
+<<<<<<< HEAD
               {wishlistStatus === "idle" ? "Loading your wishlist..." : "Your wishlist is empty"}
+=======
+              Your wishlist is empty
+>>>>>>> origin/warehouse-module
             </h2>
             <p style={{ margin: "0 0 22px", fontSize: "14px" }}>
               Tap the heart on any product to save it here.
@@ -178,8 +196,12 @@ const Wishlist = () => {
                       }}
                     />
 
+<<<<<<< HEAD
                     {product.discount && (
 <div
+=======
+                    <div
+>>>>>>> origin/warehouse-module
                       style={{
                         position: "absolute",
                         top: "11px",
@@ -195,7 +217,10 @@ const Wishlist = () => {
                     >
                       {product.discount}
                     </div>
+<<<<<<< HEAD
 )}
+=======
+>>>>>>> origin/warehouse-module
 
                     <WishlistButton productId={product.id} />
                   </div>
@@ -213,8 +238,12 @@ const Wishlist = () => {
                       {product.name}
                     </h3>
 
+<<<<<<< HEAD
                     {product.rating && (
 <div
+=======
+                    <div
+>>>>>>> origin/warehouse-module
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -243,7 +272,10 @@ const Wishlist = () => {
                         ({product.reviews})
                       </span>
                     </div>
+<<<<<<< HEAD
 )}
+=======
+>>>>>>> origin/warehouse-module
 
                     <div
                       style={{
@@ -263,8 +295,12 @@ const Wishlist = () => {
                       >
                         {formatPrice(product.price)}
                       </span>
+<<<<<<< HEAD
                       {product.oldPrice && (
 <span
+=======
+                      <span
+>>>>>>> origin/warehouse-module
                         style={{
                           fontSize: "13px",
                           color: "#9b9287",
@@ -273,7 +309,10 @@ const Wishlist = () => {
                       >
                         {formatPrice(product.oldPrice)}
                       </span>
+<<<<<<< HEAD
 )}
+=======
+>>>>>>> origin/warehouse-module
                     </div>
 
                     <div style={{ display: "flex", gap: "10px" }}>

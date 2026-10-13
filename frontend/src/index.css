@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+<<<<<<< HEAD
+=======
+:root {
+	font-family: 'DM Sans', sans-serif;
+	color: #252821;
+	background: #f5f4f0;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-optical-sizing: auto;
+	font-weight: 400;
+	--ink: #252821;
+	--muted: #7a7c75;
+	--line: #e9e7e0;
+	--paper: #ffffff;
+	--canvas: #f5f4f0;
+	--accent: #9a6838;
+	--accent-dark: #76502c;
+	--accent-soft: #f4ebdf;
+	--green: #397561;
+	--green-soft: #e7f1ec;
+	--red: #bd5a55;
+	--red-soft: #fbebea;
+}
+
+* { box-sizing: border-box; }
+
+>>>>>>> origin/warehouse-module
 html,
 body,
 #root {
@@ -12,6 +41,7 @@ body,
 }
 
 body {
+<<<<<<< HEAD
   background: #fffdf8;
   color: #211f1b;
   font-family: Inter, Arial, sans-serif;
@@ -20,3 +50,17 @@ body {
 * {
   box-sizing: border-box;
 }
+=======
+	margin: 0;
+	min-width: 340px;
+	min-height: 100vh;
+	background: #fffdf8;
+	color: #211f1b;
+	font-family: Inter, Arial, sans-serif;
+}
+
+button, input { font: inherit; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid #d3a56b; outline-offset: 2px; }
+::selection { background: #ead9c2; color: #252821; }
+>>>>>>> origin/warehouse-module

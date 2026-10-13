@@ -2,21 +2,30 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+<<<<<<< HEAD
 import { formatPrice } from "../../shared/format";
 import { resolveProduct } from "../../shared/productUtils";
+=======
+import { getProductById, formatPrice } from "../../shared/data/products";
+>>>>>>> origin/warehouse-module
 import {
   setQuantity,
   removeFromCart,
   clearCart,
   MAX_QUANTITY,
 } from "../../store/cartSlice";
+<<<<<<< HEAD
 import { addToWishlist } from "../../store/wishlistSlice";
+=======
+import { toggleWishlist } from "../../store/wishlistSlice";
+>>>>>>> origin/warehouse-module
 
 const Cart = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistIds = useSelector((state) => state.wishlist.ids);
+<<<<<<< HEAD
   const products = useSelector((state) => state.products.items);
   const cartStatus = useSelector((state) => state.cart.status);
 
@@ -28,6 +37,17 @@ const Cart = () => {
   const mrpTotal = items.reduce(
     (sum, entry) =>
       sum + (entry.product.oldPrice ?? entry.product.price) * entry.quantity,
+=======
+
+  // Join cart entries with the full product details.
+  const items = cartItems
+    .map((entry) => ({ ...entry, product: getProductById(entry.id) }))
+    .filter((entry) => entry.product);
+
+  const totalItems = items.reduce((sum, entry) => sum + entry.quantity, 0);
+  const mrpTotal = items.reduce(
+    (sum, entry) => sum + entry.product.oldPrice * entry.quantity,
+>>>>>>> origin/warehouse-module
     0
   );
   const total = items.reduce(
@@ -36,11 +56,16 @@ const Cart = () => {
   );
   const savings = mrpTotal - total;
 
+<<<<<<< HEAD
   const moveToWishlist = async (id) => {
     if (!wishlistIds.includes(id)) {
       const result = await dispatch(addToWishlist(id));
       if (addToWishlist.rejected.match(result)) return;
     }
+=======
+  const moveToWishlist = (id) => {
+    if (!wishlistIds.includes(id)) dispatch(toggleWishlist(id));
+>>>>>>> origin/warehouse-module
     dispatch(removeFromCart(id));
   };
 
@@ -141,9 +166,13 @@ const Cart = () => {
                 color: "#211f1b",
               }}
             >
+<<<<<<< HEAD
               {cartStatus === "idle" || cartStatus === "loading"
                 ? "Loading your cart..."
                 : "Your cart is empty"}
+=======
+              Your cart is empty
+>>>>>>> origin/warehouse-module
             </h2>
             <p style={{ margin: "0 0 22px", fontSize: "14px" }}>
               Browse our products and add something you like.
@@ -253,8 +282,12 @@ const Cart = () => {
                       <span style={{ fontSize: "14px", color: "#211f1b" }}>
                         {formatPrice(product.price)} each
                       </span>
+<<<<<<< HEAD
                       {product.oldPrice && (
 <span
+=======
+                      <span
+>>>>>>> origin/warehouse-module
                         style={{
                           fontSize: "13px",
                           color: "#9b9287",
@@ -263,9 +296,13 @@ const Cart = () => {
                       >
                         {formatPrice(product.oldPrice)}
                       </span>
+<<<<<<< HEAD
 )}
                       {product.discount && (
 <span
+=======
+                      <span
+>>>>>>> origin/warehouse-module
                         style={{
                           fontSize: "13px",
                           color: "#b58243",
@@ -274,7 +311,10 @@ const Cart = () => {
                       >
                         {product.discount}
                       </span>
+<<<<<<< HEAD
 )}
+=======
+>>>>>>> origin/warehouse-module
                     </div>
 
                     <div
@@ -394,9 +434,13 @@ const Cart = () => {
 
               {[
                 [`Price (${totalItems} ${totalItems === 1 ? "item" : "items"})`, formatPrice(mrpTotal), "#211f1b"],
+<<<<<<< HEAD
                 ...(savings > 0
                   ? [["Discount", `− ${formatPrice(savings)}`, "#b58243"]]
                   : []),
+=======
+                ["Discount", `− ${formatPrice(savings)}`, "#b58243"],
+>>>>>>> origin/warehouse-module
               ].map(([label, value, color]) => (
                 <div
                   key={label}

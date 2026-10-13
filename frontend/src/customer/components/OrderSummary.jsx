@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { formatPrice } from "../../shared/format";
 import { resolveProduct } from "../../shared/productUtils";
 import { card, sectionTitle } from "../../shared/ui";
@@ -6,6 +7,16 @@ import { card, sectionTitle } from "../../shared/ui";
 export const getCartDetails = (cartItems, products = []) => {
   const items = cartItems
     .map((entry) => ({ ...entry, product: resolveProduct(entry, products) }));
+=======
+import { getProductById, formatPrice } from "../../shared/data/products";
+import { card, sectionTitle } from "../../shared/ui";
+
+// Joins cart entries ({ id, quantity }) with product details and adds the total.
+export const getCartDetails = (cartItems) => {
+  const items = cartItems
+    .map((entry) => ({ ...entry, product: getProductById(entry.id) }))
+    .filter((entry) => entry.product);
+>>>>>>> origin/warehouse-module
   const total = items.reduce(
     (sum, entry) => sum + entry.product.price * entry.quantity,
     0
