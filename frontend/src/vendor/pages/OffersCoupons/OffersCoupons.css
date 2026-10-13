@@ -17,11 +17,11 @@
 }
 
 .offers-label {
-  margin: 0 0 7px;
+ margin-bottom: 10px;
   color: #b7894f;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.3px;
+  letter-spacing: 1.6px;
 }
 
 .offers-heading h2 {

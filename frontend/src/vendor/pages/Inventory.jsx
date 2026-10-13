@@ -1,3 +1,4 @@
+import "./Inventory.css";
 import React, {
   useEffect,
   useMemo,
