@@ -1,7 +1,6 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
 import { useSelector } from "react-redux";
 import { formatPrice } from "../../shared/format";
 import WishlistButton from "../components/WishlistButton";
@@ -15,80 +14,6 @@ const Deals = () => {
 
   // Deals shows the first six products from the shared list.
   const deals = products.slice(0, 6);
-=======
-
-const Deals = () => {
-  const navigate = useNavigate();
-
-  const deals = [
-    {
-      id: "premium-smartphone",
-      name: "Premium Smartphone",
-      image:
-        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
-      rating: "4.5",
-      reviews: "230",
-      price: "₹49,999",
-      oldPrice: "₹59,999",
-      discount: "17% OFF",
-    },
-    {
-      id: "slim-performance-laptop",
-      name: "Slim Performance Laptop",
-      image:
-        "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80",
-      rating: "4.7",
-      reviews: "189",
-      price: "₹64,999",
-      oldPrice: "₹74,999",
-      discount: "13% OFF",
-    },
-    {
-      id: "wireless-headphones",
-      name: "Wireless Headphones",
-      image:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
-      rating: "4.8",
-      reviews: "316",
-      price: "₹2,499",
-      oldPrice: "₹3,499",
-      discount: "29% OFF",
-    },
-    {
-      id: "smart-fitness-watch",
-      name: "Smart Fitness Watch",
-      image:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80",
-      rating: "4.6",
-      reviews: "173",
-      price: "₹3,999",
-      oldPrice: "₹5,999",
-      discount: "33% OFF",
-    },
-    {
-      id: "everyday-travel-backpack",
-      name: "Everyday Travel Backpack",
-      image:
-        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80",
-      rating: "4.7",
-      reviews: "102",
-      price: "₹1,499",
-      oldPrice: "₹2,199",
-      discount: "32% OFF",
-    },
-    {
-      id: "classic-everyday-style",
-      name: "Classic Everyday Style",
-      image:
-        "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-      rating: "4.5",
-      reviews: "158",
-      price: "₹1,999",
-      oldPrice: "₹2,999",
-      discount: "33% OFF",
-    },
-  ];
->>>>>>> origin/warehouse-module
 
   return (
     <div
@@ -178,7 +103,6 @@ const Deals = () => {
             gap: "18px",
           }}
         >
-<<<<<<< HEAD
           {deals.length === 0 && (
             <div
               style={{
@@ -199,8 +123,6 @@ const Deals = () => {
             </div>
           )}
 
-=======
->>>>>>> origin/warehouse-module
           {deals.map((product) => (
             <div
               key={product.id}
@@ -233,16 +155,11 @@ const Deals = () => {
                   }}
                 />
 
-<<<<<<< HEAD
           <WishlistButton productId={product.id} />
 
                 {/* DISCOUNT */}
                 {product.discount && (
 <div
-=======
-                {/* DISCOUNT */}
-                <div
->>>>>>> origin/warehouse-module
                   style={{
                     position: "absolute",
                     top: "11px",
@@ -258,10 +175,7 @@ const Deals = () => {
                 >
                   {product.discount}
                 </div>
-<<<<<<< HEAD
 )}
-=======
->>>>>>> origin/warehouse-module
               </div>
 
               {/* DETAILS */}
@@ -283,12 +197,8 @@ const Deals = () => {
                 </h3>
 
                 {/* RATING */}
-<<<<<<< HEAD
                 {product.rating && (
 <div
-=======
-                <div
->>>>>>> origin/warehouse-module
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -323,10 +233,7 @@ const Deals = () => {
                     ({product.reviews})
                   </span>
                 </div>
-<<<<<<< HEAD
 )}
-=======
->>>>>>> origin/warehouse-module
 
                 {/* PRICE */}
                 <div
@@ -345,37 +252,23 @@ const Deals = () => {
                       color: "#211f1b",
                     }}
                   >
-<<<<<<< HEAD
                     {formatPrice(product.price)}
                   </span>
 
                   {product.oldPrice && (
 <span
-=======
-                    {product.price}
-                  </span>
-
-                  <span
->>>>>>> origin/warehouse-module
                     style={{
                       fontSize: "13px",
                       color: "#9b9287",
                       textDecoration: "line-through",
                     }}
                   >
-<<<<<<< HEAD
                     {formatPrice(product.oldPrice)}
                   </span>
 )}
 
                   {product.discount && (
 <span
-=======
-                    {product.oldPrice}
-                  </span>
-
-                  <span
->>>>>>> origin/warehouse-module
                     style={{
                       fontSize: "13px",
                       color: "#b58243",
@@ -384,7 +277,6 @@ const Deals = () => {
                   >
                     {product.discount}
                   </span>
-<<<<<<< HEAD
 )}
                 </div>
 
@@ -395,16 +287,6 @@ const Deals = () => {
                   onClick={() => navigate(`/products/${product.id}`)}
                   style={{
                     flex: 1,
-=======
-                </div>
-
-                {/* VIEW PRODUCT */}
-                <button
-                  type="button"
-                  onClick={() => navigate(`/products/${product.id}`)}
-                  style={{
-                    width: "100%",
->>>>>>> origin/warehouse-module
                     height: "42px",
                     border: "none",
                     borderRadius: "7px",
@@ -417,11 +299,8 @@ const Deals = () => {
                 >
                   View Product
                 </button>
-<<<<<<< HEAD
 <AddToCartButton productId={product.id} />
 </div>
-=======
->>>>>>> origin/warehouse-module
               </div>
             </div>
           ))}

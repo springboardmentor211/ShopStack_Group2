@@ -18,12 +18,8 @@ const formatDay = (daysFromNow) =>
 const Checkout = () => {
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
-<<<<<<< HEAD
   const products = useSelector((state) => state.products.items);
   const { items, total } = getCartDetails(cartItems, products);
-=======
-  const { items, total } = getCartDetails(cartItems);
->>>>>>> origin/warehouse-module
 
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");

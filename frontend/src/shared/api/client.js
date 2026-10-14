@@ -44,8 +44,9 @@ export const getErrorMessage = (
   fallback = "Something went wrong. Please try again."
 ) => {
   const data = error?.response?.data;
-  if (data?.validationErrors && Object.keys(data.validationErrors).length > 0) {
-    return Object.values(data.validationErrors).join(" ");
+  const validationErrors = data?.validationErrors || data?.errors;
+  if (validationErrors && Object.keys(validationErrors).length > 0) {
+    return Object.values(validationErrors).join(" ");
   }
   if (data?.message) return data.message;
   if (error?.isAxiosError && !error.response) {

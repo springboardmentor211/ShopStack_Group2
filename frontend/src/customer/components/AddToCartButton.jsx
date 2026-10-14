@@ -13,11 +13,7 @@ const AddToCartButton = ({ productId, quantity = 1, height = 42, style }) => {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-<<<<<<< HEAD
   const handleClick = async () => {
-=======
-  const handleClick = () => {
->>>>>>> origin/warehouse-module
     // Cart needs a logged-in user. Send visitors to login, then back here.
     if (!isLoggedIn()) {
       navigate("/login", {
@@ -26,13 +22,9 @@ const AddToCartButton = ({ productId, quantity = 1, height = 42, style }) => {
       return;
     }
 
-<<<<<<< HEAD
     const result = await dispatch(addToCart({ id: productId, quantity }));
     if (addToCart.rejected.match(result)) return;
 
-=======
-    dispatch(addToCart({ id: productId, quantity }));
->>>>>>> origin/warehouse-module
     setAdded(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setAdded(false), 1400);

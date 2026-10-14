@@ -40,20 +40,11 @@ const Signup = () => {
     setSubmitting(false);
 
     if (!result.ok) {
-<<<<<<< HEAD
       setErrors(
         result.error === "exists"
           ? { email: "An account with this email already exists. Please sign in." }
           : { form: result.message }
       );
-=======
-      setErrors({
-        email:
-          result.error === "exists"
-            ? "An account with this email already exists. Please sign in."
-            : "Could not save your account. Please try again.",
-      });
->>>>>>> origin/warehouse-module
       return;
     }
 
@@ -131,11 +122,8 @@ const Signup = () => {
               )}
             </div>
 
-<<<<<<< HEAD
             {errors.form && <p style={{ ...errorText, margin: "0 0 12px" }}>{errors.form}</p>}
 
-=======
->>>>>>> origin/warehouse-module
             <button type="submit" disabled={submitting} style={darkButton}>
               {submitting ? "Creating account..." : "Continue"}
             </button>

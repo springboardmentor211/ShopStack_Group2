@@ -5,18 +5,11 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react";
-<<<<<<< HEAD
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { resetCart } from "../../store/cartSlice";
 import { resetWishlist } from "../../store/wishlistSlice";
-=======
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import products from "../../shared/data/products";
->>>>>>> origin/warehouse-module
 import { getUser, logout } from "../services/authService";
 const NAV_CATEGORIES = [
   { label: "All Categories", path: "/products" },
@@ -30,7 +23,6 @@ const NAV_CATEGORIES = [
   { label: "Deals", path: "/deals" },
 ];
 
-<<<<<<< HEAD
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -47,18 +39,6 @@ const Navbar = () => {
       })),
     [products]
   );
-=======
-// Search uses the shared product list (small thumbnails for suggestions).
-const SEARCH_PRODUCTS = products.map((product) => ({
-  id: product.id,
-  name: product.name,
-  category: product.category,
-  image: product.image.replace("w=1000", "w=200"),
-}));
-
-const Navbar = () => {
-  const navigate = useNavigate();
->>>>>>> origin/warehouse-module
   // Cart badge shows the total number of items in the cart.
   const cartCount = useSelector((state) =>
     state.cart.items.reduce((total, item) => total + item.quantity, 0)
@@ -91,11 +71,8 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-<<<<<<< HEAD
     dispatch(resetCart());
     dispatch(resetWishlist());
-=======
->>>>>>> origin/warehouse-module
     setUser(null);
     setShowAccountMenu(false);
     navigate("/");

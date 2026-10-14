@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OrderSummary, { getCartDetails } from "../components/OrderSummary";
-<<<<<<< HEAD
 import { loadCart } from "../../store/cartSlice";
 import { formatPrice } from "../../shared/format";
 import { getCustomerId } from "../services/authService";
@@ -18,18 +17,6 @@ const METHODS = [
   { value: "upi", api: "UPI", name: "UPI / Wallet", text: "Pay securely with your preferred UPI app." },
   { value: "card", api: "CREDIT_CARD", name: "Credit or Debit Card", text: "Demo card payment option." },
   { value: "cod", api: "CASH_ON_DELIVERY", name: "Cash on Delivery", text: "Pay when your order arrives." },
-=======
-import { clearCart } from "../../store/cartSlice";
-import { formatPrice } from "../../shared/data/products";
-import {
-  page, card, title, sectionTitle, goldButton, darkButton, backButton,
-} from "../../shared/ui";
-
-const METHODS = [
-  { value: "upi", name: "UPI / Wallet", text: "Pay securely with your preferred UPI app." },
-  { value: "card", name: "Credit or Debit Card", text: "Demo card payment option." },
-  { value: "cod", name: "Cash on Delivery", text: "Pay when your order arrives." },
->>>>>>> origin/warehouse-module
 ];
 
 const Payment = () => {
@@ -37,7 +24,6 @@ const Payment = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const cartItems = useSelector((state) => state.cart.items);
-<<<<<<< HEAD
   const products = useSelector((state) => state.products.items);
   const { items, total } = getCartDetails(cartItems, products);
 
@@ -46,17 +32,10 @@ const Payment = () => {
   const [pendingOrder, setPendingOrder] = useState(null); // order saved, payment not finished
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-=======
-  const { items, total } = getCartDetails(cartItems);
-
-  const [method, setMethod] = useState(location.state?.payment || "upi");
-  const [placedOrder, setPlacedOrder] = useState(null);
->>>>>>> origin/warehouse-module
 
   // Opened without going through Checkout (e.g. after a refresh).
   if (!location.state && !placedOrder) return <Navigate to="/checkout" replace />;
 
-<<<<<<< HEAD
   const placeOrder = async () => {
     setError("");
     setSubmitting(true);
@@ -104,14 +83,6 @@ const Payment = () => {
     </div>
   );
 
-=======
-  const placeOrder = () => {
-    // Demo only: no real payment or order is created until the backend exists.
-    setPlacedOrder({ id: `SS${Date.now().toString().slice(-8)}`, total });
-    dispatch(clearCart());
-  };
-
->>>>>>> origin/warehouse-module
   return (
     <div style={page}>
       <Navbar />
@@ -125,11 +96,7 @@ const Payment = () => {
                 Thank you for shopping with Shop360.
               </p>
               <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#211f1b" }}>
-<<<<<<< HEAD
                 Order {placedOrder.id} · {formatPrice(placedOrder.total)} · {placedOrder.method}
-=======
-                Order {placedOrder.id} · {formatPrice(placedOrder.total)}
->>>>>>> origin/warehouse-module
               </p>
               <button
                 type="button"
@@ -139,22 +106,8 @@ const Payment = () => {
                 Continue Shopping
               </button>
             </div>
-<<<<<<< HEAD
           ) : items.length === 0 && !pendingOrder ? (
             emptyCard("Your cart is empty")
-=======
-          ) : items.length === 0 ? (
-            <div style={{ ...card, textAlign: "center", padding: "50px 40px" }}>
-              <h2 style={sectionTitle}>Your cart is empty</h2>
-              <button
-                type="button"
-                onClick={() => navigate("/products")}
-                style={{ ...darkButton, width: "auto", padding: "0 28px" }}
-              >
-                Shop Products
-              </button>
-            </div>
->>>>>>> origin/warehouse-module
           ) : (
             <>
               <button type="button" onClick={() => navigate("/checkout")} style={backButton}>
@@ -194,7 +147,6 @@ const Payment = () => {
                   </label>
                 ))}
 
-<<<<<<< HEAD
                 {error && <p style={{ ...errorText, marginTop: "14px" }}>{error}</p>}
 
                 <button
@@ -212,14 +164,6 @@ const Payment = () => {
               </div>
 
               {!pendingOrder && <OrderSummary items={items} total={total} />}
-=======
-                <button type="button" onClick={placeOrder} style={{ ...goldButton, marginTop: "22px" }}>
-                  Pay Securely &amp; Place Order
-                </button>
-              </div>
-
-              <OrderSummary items={items} total={total} />
->>>>>>> origin/warehouse-module
             </>
           )}
         </div>
