@@ -1,13 +1,13 @@
 
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import { NavLink } from "react-router-dom";
 
 import "./Products.css";
 
 import ProductFilters from "../components/ProductFilters";
 import ProductTable from "../components/ProductTable";
 import ProductForm from "../components/ProductForm";
+import { initialProducts } from "../../data";
 
 function Products() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -19,11 +19,34 @@ function Products() {
     try {
       const savedProducts = localStorage.getItem("shopstack-products");
 
-      if (!savedProducts) return [];
+      // Use sample products if nothing is saved.
+      if (!savedProducts) {
+        localStorage.setItem(
+          "shopstack-products",
+          JSON.stringify(initialProducts)
+        );
+        return initialProducts.map((product) => ({ ...product }));
+      }
 
       const parsedProducts = JSON.parse(savedProducts);
 
-      if (!Array.isArray(parsedProducts)) return [];
+      // Use sample products if saved data is invalid.
+      if (!Array.isArray(parsedProducts)) {
+        localStorage.setItem(
+          "shopstack-products",
+          JSON.stringify(initialProducts)
+        );
+        return initialProducts.map((product) => ({ ...product }));
+      }
+
+      // Fix: replace an existing empty array with sample products.
+      if (parsedProducts.length === 0) {
+        localStorage.setItem(
+          "shopstack-products",
+          JSON.stringify(initialProducts)
+        );
+        return initialProducts.map((product) => ({ ...product }));
+      }
 
       return parsedProducts.map((product, index) => ({
         ...product,
@@ -31,7 +54,7 @@ function Products() {
       }));
     } catch (error) {
       console.error("Error reading products:", error);
-      return [];
+      return initialProducts.map((product) => ({ ...product }));
     }
   });
 
@@ -40,11 +63,16 @@ function Products() {
   const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
-    localStorage.setItem(
-      "shopstack-products",
-      JSON.stringify(products)
-    );
-    setIsLoading(false);
+    try {
+      localStorage.setItem(
+        "shopstack-products",
+        JSON.stringify(products)
+      );
+    } catch (error) {
+      console.error("Error saving products:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [products]);
 
   useEffect(() => {

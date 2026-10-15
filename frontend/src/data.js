@@ -144,3 +144,87 @@ export const initialSettings = {
 };
 
 //start from here for your mock data
+
+ // Vendor Products page mock data
+export const initialProducts = [
+  {
+    id: 1,
+    name: "Organic Cotton Kurta",
+    sku: "NF-KRT-OLV-M",
+    category: "Clothing",
+    price: 1499,
+    stock: 25,
+    status: "Active",
+  },
+  {
+    id: 2,
+    name: "Brass Table Lamp",
+    sku: "NF-LMP-BRS-01",
+    category: "Home Decor",
+    price: 2499,
+    stock: 5,
+    status: "Active",
+  },
+  {
+    id: 3,
+    name: "Linen Shirt",
+    sku: "NF-SHT-LIN-L",
+    category: "Clothing",
+    price: 999,
+    stock: 0,
+    status: "Out of Stock",
+  },
+  {
+    id: 4,
+    name: "Ceramic Vase",
+    sku: "NF-VAS-CRM-01",
+    category: "Home Decor",
+    price: 799,
+    stock: 18,
+    status: "Active",
+  },
+];
+
+// Vendor Orders page mock data
+export const initialOrders = [
+  {
+    id: "#ORD-1024",
+    customer: "Ananya Rao",
+    product: "Heritage Portable Speaker",
+    date: "18 Sep 2026",
+    total: 7499,
+    status: "Processing",
+  },
+  {
+    id: "#ORD-1023",
+    customer: "Rahul Kumar",
+    product: "Wireless Headphones",
+    date: "18 Sep 2026",
+    total: 3999,
+    status: "Shipped",
+  },
+  {
+    id: "#ORD-1022",
+    customer: "Sneha Reddy",
+    product: "Smart Watch",
+    date: "17 Sep 2026",
+    total: 5499,
+    status: "Delivered",
+  },
+  {
+    id: "#ORD-1021",
+    customer: "Arjun Patel",
+    product: "Bluetooth Speaker",
+    date: "17 Sep 2026",
+    total: 2499,
+    status: "Pending",
+  },
+  {
+    id: "#ORD-1020",
+    customer: "Priya Sharma",
+    product: "USB-C Hub",
+    date: "16 Sep 2026",
+    total: 1899,
+    status: "Delivered",
+  },
+];

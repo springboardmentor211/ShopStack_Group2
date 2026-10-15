@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Download } from "lucide-react";
 
 import OrdersFilters from "../components/OrdersFilters";
@@ -7,53 +7,13 @@ import OrdersTable from "../components/OrdersTable";
 import OrderDetails from "../components/OrderDetails";
 import ShipmentTracking from "../components/ShipmentTracking";
 
+import { initialOrders } from "../../data";
 import "./Orders.css";
 
-const initialOrders = [
-  {
-    id: "#ORD-1024",
-    customer: "Ananya Rao",
-    product: "Heritage Portable Speaker",
-    date: "18 Sep 2026",
-    total: 7499,
-    status: "Processing",
-  },
-  {
-    id: "#ORD-1023",
-    customer: "Rahul Kumar",
-    product: "Wireless Headphones",
-    date: "18 Sep 2026",
-    total: 3999,
-    status: "Shipped",
-  },
-  {
-    id: "#ORD-1022",
-    customer: "Sneha Reddy",
-    product: "Smart Watch",
-    date: "17 Sep 2026",
-    total: 5499,
-    status: "Delivered",
-  },
-  {
-    id: "#ORD-1021",
-    customer: "Arjun Patel",
-    product: "Bluetooth Speaker",
-    date: "17 Sep 2026",
-    total: 2499,
-    status: "Pending",
-  },
-  {
-    id: "#ORD-1020",
-    customer: "Priya Sharma",
-    product: "USB-C Hub",
-    date: "16 Sep 2026",
-    total: 1899,
-    status: "Delivered",
-  },
-];
-
 function Orders() {
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState(() =>
+    initialOrders.map((order) => ({ ...order }))
+  );
 
   const [currentPage, setCurrentPage] = useState("orders");
   const [selectedOrder, setSelectedOrder] = useState(null);
