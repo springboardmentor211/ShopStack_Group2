@@ -4,81 +4,12 @@ import React, {
   useMemo,
   useState
 } from "react";
+import {
+  graphData,
+  topProducts,
+  orderPerformance
+} from "../../data";
 
-
-const graphData = {
-
-  "7": {
-
-    labels: [
-      "Sep 30",
-      "Oct 01",
-      "Oct 02",
-      "Oct 03",
-      "Oct 04",
-      "Oct 05",
-      "Oct 06"
-    ],
-
-    values: [
-      1800,
-      2400,
-      2100,
-      3200,
-      2800,
-      4100,
-      4600
-    ]
-
-  },
-
-
-  "30": {
-
-    labels: [
-      "Aug 21",
-      "Aug 28",
-      "Sep 04",
-      "Sep 11",
-      "Sep 19"
-    ],
-
-    values: [
-      700,
-      2600,
-      4200,
-      5200,
-      5900
-    ]
-
-  },
-
-
-  "90": {
-
-    labels: [
-      "Jul 01",
-      "Jul 15",
-      "Aug 01",
-      "Aug 15",
-      "Sep 01",
-      "Sep 15",
-      "Oct 01"
-    ],
-
-    values: [
-      1200,
-      1800,
-      2500,
-      3200,
-      4100,
-      5000,
-      5900
-    ]
-
-  }
-
-};
 
 
 /* GRAPH */
@@ -252,31 +183,6 @@ export default function Analytics() {
     useState("30");
 
 
-  const topProducts = [
-
-    [
-      "Heritage Portable Speaker",
-      86
-    ],
-
-    [
-      "Wireless Headphones",
-      72
-    ],
-
-    [
-      "Smart Watch",
-      54
-    ],
-
-    [
-      "Bluetooth Speaker",
-      41
-    ]
-
-  ];
-
-
   return (
 
     <main className="main-content analytics-page">
@@ -384,121 +290,23 @@ export default function Analytics() {
           </h2>
 
           <div className="box-line" />
+          
+          {orderPerformance.map((item) => (
+            <div className="performance-item" key={item.label}>
+              <div className="performance-heading">
+                <span>{item.label}</span>
+                <strong>{item.count}</strong>
+              </div>
 
-
-          <div className="performance-item">
-
-            <div className="performance-heading">
-
-              <span>
-                Completed
-              </span>
-
-              <strong>
-                180
-              </strong>
-
+              <div className="progress-background">
+                <div
+                  className={`progress ${item.label.toLowerCase()}`}
+                  style={{ width: item.width }}
+                />
+              </div>
             </div>
-
-            <div className="progress-background">
-
-              <div
-                className="progress"
-                style={{
-                  width: "80%"
-                }}
-              />
-
-            </div>
-
-          </div>
-
-
-          <div className="performance-item">
-
-            <div className="performance-heading">
-
-              <span>
-                Processing
-              </span>
-
-              <strong>
-                28
-              </strong>
-
-            </div>
-
-            <div className="progress-background">
-
-              <div
-                className="progress processing"
-                style={{
-                  width: "12%"
-                }}
-              />
-
-            </div>
-
-          </div>
-
-
-          <div className="performance-item">
-
-            <div className="performance-heading">
-
-              <span>
-                Shipped
-              </span>
-
-              <strong>
-                25
-              </strong>
-
-            </div>
-
-            <div className="progress-background">
-
-              <div
-                className="progress shipped"
-                style={{
-                  width: "10%"
-                }}
-              />
-
-            </div>
-
-          </div>
-
-
-          <div className="performance-item">
-
-            <div className="performance-heading">
-
-              <span>
-                Pending
-              </span>
-
-              <strong>
-                15
-              </strong>
-
-            </div>
-
-            <div className="progress-background">
-
-              <div
-                className="progress pending"
-                style={{
-                  width: "7%"
-                }}
-              />
-
-            </div>
-
-          </div>
-
-
-        </section>
+          ))}
+          </section>
 
 
         {/* TOP SELLING PRODUCTS */}

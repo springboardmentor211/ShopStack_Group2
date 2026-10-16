@@ -228,3 +228,36 @@ export const initialOrders = [
     status: "Delivered",
   },
 ];
+// Inventory sample data
+
+
+//Analytics sample data
+
+export const graphData = {
+  "7": {
+    labels: ["Sep 30", "Oct 01", "Oct 02", "Oct 03", "Oct 04", "Oct 05", "Oct 06"],
+    values: [1800, 2400, 2100, 3200, 2800, 4100, 4600]
+  },
+  "30": {
+    labels: ["Aug 21", "Aug 28", "Sep 04", "Sep 11", "Sep 19"],
+    values: [700, 2600, 4200, 5200, 5900]
+  },
+  "90": {
+    labels: ["Jul 01", "Jul 15", "Aug 01", "Aug 15", "Sep 01", "Sep 15", "Oct 01"],
+    values: [1200, 1800, 2500, 3200, 4100, 5000, 5900]
+  }
+};
+
+export const topProducts = [
+  ["Heritage Portable Speaker", 86],
+  ["Wireless Headphones", 72],
+  ["Smart Watch", 54],
+  ["Bluetooth Speaker", 41]
+];
+
+export const orderPerformance = [
+  { label: "Completed", count: 180, width: "80%" },
+  { label: "Processing", count: 28, width: "12%" },
+  { label: "Shipped", count: 25, width: "10%" },
+  { label: "Pending", count: 15, width: "7%" }
+];
