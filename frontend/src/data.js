@@ -228,7 +228,7 @@ export const initialOrders = [
     status: "Delivered",
   },
 ];
-
+//vendor Analytics page mock data
 export const graphData = {
   "7": {
     labels: [
