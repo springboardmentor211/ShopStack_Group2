@@ -4,56 +4,10 @@ import React, {
   useMemo,
   useState
 } from "react";
+import { initialProducts } from "../../data";
 
 
-const initialProducts = [
 
-  {
-    id: 1,
-    name: "Heritage Portable Speaker",
-    sku: "HER-SPK-WAL-04",
-    category: "Electronics",
-    price: 7499,
-    stock: 0
-  },
-
-  {
-    id: 2,
-    name: "Linen Throw Cushion",
-    sku: "LIN-THR-02",
-    category: "Home & Living",
-    price: 1299,
-    stock: 24
-  },
-
-  {
-    id: 3,
-    name: "Ceramic Table Lamp",
-    sku: "CER-LMP-08",
-    category: "Home & Living",
-    price: 2499,
-    stock: 3
-  },
-
-  {
-    id: 4,
-    name: "Classic Leather Tote",
-    sku: "CLT-BAG-01",
-    category: "Accessories",
-    price: 3999,
-    stock: 18
-  },
-
-  {
-    id: 5,
-    name: "Wireless Headphones",
-    sku: "WHP-200-01",
-    category: "Electronics",
-    price: 2999,
-    stock: 12
-  }
-
-];
 
 
 function getStatus(stock) {
