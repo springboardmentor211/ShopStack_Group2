@@ -6,8 +6,7 @@ import {
 	Search, Send, X,
 } from 'lucide-react'
 import { useOrderDesk } from '../hooks/useOrderDesk.js'
-import '../../App.css'
-
+import '../styles/OrdersPage.css'
 const statuses = [
 	{ id: 'ALL', label: 'All' },
 	{ id: 'PENDING', label: 'Pending' },
@@ -107,7 +106,7 @@ function OrdersPage() {
 	const itemCount = selectedOrder?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
 	return (
-		<div className="app-shell">
+		<div className="orders-page">
 			<div className="workspace">
 				<main className="main-content">
 					<div className="page-heading">
@@ -151,7 +150,7 @@ function OrdersPage() {
 							<div className="items-section"><div className="items-table-head"><span>Item</span><span>Bin</span><span>Qty</span><span>Stock</span></div>
 								{selectedOrder.items.map((item) => <div className="item-row" key={item.sku}><ProductThumb item={item} /><div className="item-description"><strong>{item.name}</strong><span>{item.sku} · {item.variant}</span><small>Vendor · {item.vendorName}</small></div><span className="item-bin">{item.bin}</span><strong className="item-quantity">{item.quantity}</strong><span className={`item-stock${item.stock < item.quantity ? ' item-stock--low' : ''}`}>{item.stock} in stock</span></div>)}
 							</div>
-							<div className="fulfillment-progress" aria-label={`Order status: ${statusLabels[selectedOrder.status]}`}>
+							<div className="order-progress" aria-label={`Order status: ${statusLabels[selectedOrder.status]}`}>
 								{progressStatuses.map((status, index) => {
 									const currentIndex = progressStatuses.findIndex((item) => item.id === selectedOrder.status)
 									const complete = selectedOrder.status !== 'CANCELLED' && index < currentIndex
