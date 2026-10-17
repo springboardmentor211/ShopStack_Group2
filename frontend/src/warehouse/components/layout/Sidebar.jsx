@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { LayoutDashboard, ArrowDownToLine, Boxes, Move, Package, Truck, FileText, X, Warehouse } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -38,7 +38,7 @@ export default function Sidebar({ counts = {}, ownerName = '', role = '', isOpen
         }`}
       >
         <div className="flex items-center justify-between gap-3 border-b border-[#E8DFC8] px-5 py-5">
-          <div className="flex items-center gap-3">
+          <Link to="/warehouse/dashboard" onClick={onClose} className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#8F6739] text-white">
               <Warehouse className="h-5 w-5" />
             </div>
@@ -46,8 +46,8 @@ export default function Sidebar({ counts = {}, ownerName = '', role = '', isOpen
               <p className="wh-editorial text-sm font-bold leading-tight text-[#1A1A1A]">Shop360</p>
               <p className="text-[11px] text-[#746D62]">Warehouse Console</p>
             </div>
-          </div>
-          <button type="button" onClick={onClose} className="lg:hidden">
+          </Link>
+          <button type="button" onClick={onClose} aria-label="Close menu" className="lg:hidden">
             <X className="h-4 w-4 text-[#746D62]" />
           </button>
         </div>
