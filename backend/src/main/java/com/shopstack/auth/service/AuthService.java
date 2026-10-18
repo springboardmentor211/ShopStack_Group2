@@ -14,11 +14,15 @@ import com.shopstack.auth.dto.WarehouseProfileDto;
 import com.shopstack.common.exception.ResourceNotFoundException;
 import com.shopstack.security.jwt.JwtAuthenticationToken;
 import com.shopstack.warehouse.entity.Warehouse;
+import com.shopstack.warehouse.entity.WarehouseOwner;
+import com.shopstack.warehouse.repository.WarehouseOwnerRepository;
 import com.shopstack.warehouse.repository.WarehouseRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -58,10 +62,33 @@ public class AuthService {
     }
 
      private final WarehouseRepository warehouseRepository;
+    private final WarehouseOwnerRepository warehouseOwnerRepository;
 
     // public AuthService(WarehouseRepository warehouseRepository) {
     //     this.warehouseRepository = warehouseRepository;
     // }
+
+    private AuthResponse loginAsWarehouseOwner(LoginRequest request) {
+        if (request.getEmail() == null || request.getPassword() == null) {
+            return null;
+        }
+        WarehouseOwner owner = warehouseOwnerRepository.findByEmailIgnoreCase(request.getEmail().trim()).orElse(null);
+        if (owner == null || !passwordEncoder.matches(request.getPassword(), owner.getPasswordHash())) {
+            return null;
+        }
+        String token = jwtUtils.generate(owner.getEmail(), Map.of(
+                JwtUtils.CLAIM_WAREHOUSE_ID, owner.getWarehouseId(),
+                JwtUtils.CLAIM_ROLE, owner.getRole()
+        ));
+        return AuthResponse.builder()
+                .name(owner.getName())
+                .email(owner.getEmail())
+                .token(token)
+                .role(owner.getRole())
+                .warehouseId(owner.getWarehouseId())
+                .message("Login successful!")
+                .build();
+    }
 
     public WarehouseProfileDto currentProfile() {
         Authentication authentication = currentAuthentication();
@@ -79,6 +106,11 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        AuthResponse warehouseOwnerResponse = loginAsWarehouseOwner(request);
+        if (warehouseOwnerResponse != null) {
+            return warehouseOwnerResponse;
+        }
+
         Customer customer = customerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 

@@ -1,5 +1,6 @@
 import api, { getErrorMessage } from "../../shared/api/client";
 import { getSession, setSession, clearSession } from "../../shared/api/session";
+import { startWarehouseSession } from "../../warehouse/services/devAuth";
 
 // ---- session (who is logged in) ----
 export const getUser = () => getSession();
@@ -41,6 +42,10 @@ export const loginWithPassword = async (email, password) => {
       email: email.trim(),
       password,
     });
+    if (data.warehouseId) {
+      startWarehouseSession(data);
+      return { ok: true, role: "warehouse" };
+    }
     setSession({
       token: data.token,
       customerId: data.customerId,

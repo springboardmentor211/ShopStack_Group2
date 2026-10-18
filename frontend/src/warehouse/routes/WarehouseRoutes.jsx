@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import WarehouseLayout from '../components/layout/WarehouseLayout';
+import RequireWarehouseAuth from '../components/RequireWarehouseAuth';
 import DashboardPage from '../pages/DashboardPage';
 import ReceivingPage from '../pages/ReceivingPage';
 import InventoryPage from '../pages/InventoryPage';
@@ -19,7 +20,7 @@ function ComingSoon() {
 export default function WarehouseRoutes() {
   return (
     <Routes>
-      <Route element={<WarehouseLayout />}>
+      <Route element={<RequireWarehouseAuth><WarehouseLayout /></RequireWarehouseAuth>}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="receiving" element={<ReceivingPage />} />
