@@ -14,11 +14,15 @@ import com.shopstack.auth.dto.WarehouseProfileDto;
 import com.shopstack.common.exception.ResourceNotFoundException;
 import com.shopstack.security.jwt.JwtAuthenticationToken;
 import com.shopstack.warehouse.entity.Warehouse;
+import com.shopstack.warehouse.entity.WarehouseOwner;
+import com.shopstack.warehouse.repository.WarehouseOwnerRepository;
 import com.shopstack.warehouse.repository.WarehouseRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +62,7 @@ public class AuthService {
     }
 
      private final WarehouseRepository warehouseRepository;
+    private final WarehouseOwnerRepository warehouseOwnerRepository;
 
     // public AuthService(WarehouseRepository warehouseRepository) {
     //     this.warehouseRepository = warehouseRepository;
@@ -79,22 +84,43 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        Customer customer = customerRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        String rawPassword = request.getPassword();
+        String email = request.getEmail() == null ? "" : request.getEmail().trim();
 
-        if (!passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+        Customer customer = customerRepository.findByEmail(email).orElse(null);
+        if (customer != null && rawPassword != null
+                && passwordEncoder.matches(rawPassword, customer.getPassword())) {
+            String token = jwtUtils.generateJwtToken(customer.getEmail());
+
+            return AuthResponse.builder()
+                    .customerId(customer.getId())
+                    .name(customer.getName())
+                    .email(customer.getEmail())
+                    .token(token)
+                    .role("CUSTOMER")
+                    .message("Login successful!")
+                    .build();
         }
 
-        String token = jwtUtils.generateJwtToken(customer.getEmail());
+        WarehouseOwner owner = warehouseOwnerRepository.findByEmailIgnoreCase(email).orElse(null);
+        if (owner != null && rawPassword != null
+                && passwordEncoder.matches(rawPassword, owner.getPasswordHash())) {
+            String token = jwtUtils.generate(owner.getEmail(), Map.of(
+                    JwtUtils.CLAIM_WAREHOUSE_ID, owner.getWarehouseId(),
+                    JwtUtils.CLAIM_ROLE, owner.getRole()
+            ));
 
-        return AuthResponse.builder()
-                .customerId(customer.getId())
-                .name(customer.getName())
-                .email(customer.getEmail())
-                .token(token)
-                .message("Login successful!")
-                .build();
+            return AuthResponse.builder()
+                    .name(owner.getName())
+                    .email(owner.getEmail())
+                    .token(token)
+                    .role(owner.getRole())
+                    .warehouseId(owner.getWarehouseId())
+                    .message("Login successful!")
+                    .build();
+        }
+
+        throw new RuntimeException("Invalid email or password");
     }
     /**
      * The JWT carries a canonical role code (WAREHOUSE_STAFF) because that is what

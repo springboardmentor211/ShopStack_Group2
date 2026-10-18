@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import WarehouseLayout from '../components/layout/WarehouseLayout';
+import RequireWarehouseAuth from '../components/RequireWarehouseAuth';
 import DashboardPage from '../pages/DashboardPage';
 import ReceivingPage from '../pages/ReceivingPage';
 import InventoryPage from '../pages/InventoryPage';
@@ -19,16 +20,18 @@ function ComingSoon() {
 export default function WarehouseRoutes() {
   return (
     <Routes>
-      <Route element={<WarehouseLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="receiving" element={<ReceivingPage />} />
-        <Route path="inventory" element={<InventoryPage />} />
-        <Route path="movement" element={<MovementPage />} />
-        <Route path="orders" element={<OrdersPage />} />
-        <Route path="picking" element={<PickingPage />} />
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="*" element={<ComingSoon />} />
+      <Route element={<RequireWarehouseAuth />}>
+        <Route element={<WarehouseLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="receiving" element={<ReceivingPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="movement" element={<MovementPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="picking" element={<PickingPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="*" element={<ComingSoon />} />
+        </Route>
       </Route>
     </Routes>
   );

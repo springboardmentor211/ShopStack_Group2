@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { loadProducts } from "../../store/productsSlice";
 import { loadCart } from "../../store/cartSlice";
 import { loadWishlist } from "../../store/wishlistSlice";
+import { resetWarehouse } from "../../warehouse/store/actions";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { loginWithPassword } from "../services/authService";
@@ -47,6 +48,12 @@ const Login = () => {
 
     if (!result.ok) {
       setErrors({ password: result.message });
+      return;
+    }
+
+    if (result.role === "warehouse") {
+      dispatch(resetWarehouse());
+      navigate(from && from.startsWith("/warehouse") ? from : "/warehouse/dashboard", { replace: true });
       return;
     }
 
