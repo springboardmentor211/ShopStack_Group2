@@ -308,3 +308,67 @@
     align-items: flex-start;
   }
 }
+
+.inventory-summary {
+  margin-bottom: 24px;
+}
+
+.inventory-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.inventory-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #e5e0d8;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.inventory-stat-card span {
+  color: #716b62;
+  font-size: 13px;
+}
+
+.inventory-stat-card strong {
+  color: #92794f;
+  font-size: 23px;
+}
+
+@media (max-width: 900px) {
+  .inventory-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.sales-header h2 {
+  margin: 0;
+}
+
+.sales-header select {
+  margin-left: auto;
+  padding: 8px 12px;
+  border: 1px solid #e5d8c6;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+

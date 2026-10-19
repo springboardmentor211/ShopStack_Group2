@@ -4,7 +4,7 @@ import React, {
   useMemo,
   useState
 } from "react";
-import { initialProducts } from "../../data";
+const API_URL = "http://localhost:8080/api/products";
 
 
 
@@ -141,30 +141,9 @@ function Popup({
 
 
 export default function Inventory() {
-
-
-  const [products, setProducts] =
-    useState(() => {
-
-      try {
-
-        const saved =
-          localStorage.getItem(
-            "shop360_products"
-          );
-
-        return saved
-          ? JSON.parse(saved)
-          : initialProducts;
-
-      } catch {
-
-        return initialProducts;
-
-      }
-
-    });
-
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState("");
 
   const [searchText, setSearchText] =
     useState("");
@@ -207,15 +186,29 @@ export default function Inventory() {
 
 
   /* SAVE PRODUCTS */
+useEffect(() => {
+  async function loadProducts() {
+    try {
+      const response = await fetch(API_URL);
 
-  useEffect(() => {
+      if (!response.ok) {
+        throw new Error("Failed to load products");
+      }
 
-    localStorage.setItem(
-      "shop360_products",
-      JSON.stringify(products)
-    );
+      const data = await response.json();
+      setProducts(data);
+      setApiError("");
+    } catch (error) {
+      setApiError(
+        "Unable to load products. Check whether the backend is running."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  }, [products]);
+  loadProducts();
+}, []);
 
 
   /* STATISTICS */
@@ -269,15 +262,15 @@ export default function Inventory() {
 
             !search ||
 
-            product.name
+            (product.name || "")
               .toLowerCase()
               .includes(search) ||
 
-            product.sku
+            (product.sku || "")
               .toLowerCase()
               .includes(search) ||
 
-            product.category
+            (product.category || "")
               .toLowerCase()
               .includes(search);
 
@@ -335,178 +328,105 @@ export default function Inventory() {
   }
 
 
-  /* ADD PRODUCT */
+  /* ADD PRODUCT - save to backend */
 
-  function addProduct() {
-
-    const name =
-      newProduct.name.trim();
-
-    const sku =
-      newProduct.sku.trim();
-
-    const category =
-      newProduct.category.trim();
-
-    const price =
-      Number(newProduct.price);
-
-    const stock =
-      Number(newProduct.stock);
-
+  async function addProduct() {
+    const name = newProduct.name.trim();
+    const sku = newProduct.sku.trim();
+    const category = newProduct.category.trim();
+    const price = Number(newProduct.price);
+    const stock = Number(newProduct.stock);
 
     if (
-
-      !name ||
-      !sku ||
-      !category ||
-      !Number.isFinite(price) ||
-      price < 0 ||
-      !Number.isInteger(stock) ||
-      stock < 0
-
+      !name || !sku || !category ||
+      newProduct.price === "" || newProduct.stock === "" ||
+      !Number.isFinite(price) || price < 0 ||
+      !Number.isInteger(stock) || stock < 0
     ) {
-
       showPopup(
         "warning",
         "Invalid Product Details",
         "Please enter valid product name, SKU, category, price and stock."
       );
-
       return;
-
     }
 
-
-    const duplicateSKU =
-      products.some(
-        (product) =>
-          product.sku.toLowerCase() ===
-          sku.toLowerCase()
-      );
-
+    const duplicateSKU = products.some(
+      (product) => product.sku.toLowerCase() === sku.toLowerCase()
+    );
 
     if (duplicateSKU) {
-
-      showPopup(
-        "warning",
-        "SKU Already Exists",
-        "Please enter a unique SKU."
-      );
-
+      showPopup("warning", "SKU Already Exists", "Please enter a unique SKU.");
       return;
-
     }
 
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, sku, category, price, stock })
+      });
 
-    const product = {
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Unable to add product");
+      }
 
-      id: Date.now(),
-
-      name,
-
-      sku,
-
-      category,
-
-      price,
-
-      stock
-
-    };
-
-
-    setProducts(
-      (current) => [
-        ...current,
-        product
-      ]
-    );
-
-
-    setNewProduct({
-
-      name: "",
-      sku: "",
-      category: "",
-      price: "",
-      stock: ""
-
-    });
-
-
-    setShowAddModal(false);
-
-
-    showPopup(
-      "success",
-      "Product Added",
-      `${name} has been successfully added to your inventory.`
-    );
-
+      const savedProduct = await response.json();
+      setProducts((current) => [...current, savedProduct]);
+      setNewProduct({ name: "", sku: "", category: "", price: "", stock: "" });
+      setShowAddModal(false);
+      showPopup("success", "Product Added", `${name} has been successfully added to your inventory.`);
+    } catch (error) {
+      showPopup(
+        "warning",
+        "Product Not Added",
+        "Could not save the product. Check the backend connection and make sure the SKU is unique."
+      );
+    }
   }
 
 
-  /* UPDATE STOCK */
+  /* UPDATE STOCK - save to backend */
 
-  function updateStock() {
+  async function updateStock() {
+    const quantity = Number(stockValue);
 
-    const quantity =
-      Number(stockValue);
-
-
-    if (
-      !Number.isInteger(quantity) ||
-      quantity < 0
-    ) {
-
-      showPopup(
-        "warning",
-        "Invalid Stock Quantity",
-        "Enter a whole number greater than or equal to 0."
-      );
-
+    if (stockValue === "" || !Number.isInteger(quantity) || quantity < 0) {
+      showPopup("warning", "Invalid Stock Quantity", "Enter a whole number greater than or equal to 0.");
       return;
-
     }
 
+    const product = products.find((item) => item.id === selectedProductId);
+    if (!product) {
+      showPopup("warning", "Product Not Found", "Please select a valid product.");
+      return;
+    }
 
-    const product =
-      products.find(
-        (item) =>
-          item.id ===
-          selectedProductId
+    try {
+      const response = await fetch(`${API_URL}/${selectedProductId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...product, stock: quantity })
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to update stock");
+      }
+
+      const updatedProduct = await response.json();
+      setProducts((current) => current.map((item) =>
+        item.id === selectedProductId ? updatedProduct : item
+      ));
+      setShowStockModal(false);
+      showPopup("success", "Stock Updated", `${product.name} stock has been updated successfully.`);
+    } catch (error) {
+      showPopup(
+        "warning",
+        "Stock Not Updated",
+        "Could not update stock. Confirm that your backend has a PUT /api/products/{id} endpoint."
       );
-
-
-    setProducts(
-      (current) =>
-
-        current.map(
-          (item) =>
-
-            item.id ===
-            selectedProductId
-
-              ? {
-                  ...item,
-                  stock: quantity
-                }
-
-              : item
-        )
-    );
-
-
-    setShowStockModal(false);
-
-
-    showPopup(
-      "success",
-      "Stock Updated",
-      `${product?.name || "Product"} stock has been updated successfully.`
-    );
-
+    }
   }
 
 
@@ -534,41 +454,33 @@ export default function Inventory() {
   }
 
 
-  /* DELETE */
+  /* DELETE - remove from backend */
 
-  function confirmDelete() {
+  async function confirmDelete() {
+    if (!popup?.productId) return;
 
-    const product =
-      products.find(
-        (item) =>
-          item.id ===
-          popup.productId
-      );
+    const product = products.find((item) => item.id === popup.productId);
 
+    try {
+      const response = await fetch(`${API_URL}/${popup.productId}`, {
+        method: "DELETE"
+      });
 
-    setProducts(
-      (current) =>
-        current.filter(
-          (item) =>
-            item.id !==
-            popup.productId
-        )
-    );
+      if (!response.ok) {
+        throw new Error("Unable to delete product");
+      }
 
-
-    setPopup(null);
-
-
-    setTimeout(() => {
-
+      setProducts((current) => current.filter((item) => item.id !== popup.productId));
+      setPopup(null);
+      showPopup("success", "Product Deleted", `${product?.name || "Product"} has been removed from your inventory.`);
+    } catch (error) {
+      setPopup(null);
       showPopup(
-        "success",
-        "Product Deleted",
-        `${product?.name || "Product"} has been removed from your inventory.`
+        "warning",
+        "Product Not Deleted",
+        "Could not delete the product. Confirm that your backend has a DELETE /api/products/{id} endpoint."
       );
-
-    }, 100);
-
+    }
   }
 
 
@@ -576,6 +488,8 @@ export default function Inventory() {
 
     <main className="main-content">
 
+      {loading && <p className="api-message">Loading products...</p>}
+      {apiError && <p className="api-message api-error">{apiError}</p>}
 
       {/* TITLE */}
 
