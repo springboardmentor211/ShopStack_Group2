@@ -11,7 +11,6 @@ import AddWarehouse from './pages/AddWarehouse';
 import Orders from './pages/Orders';
 import Catalog from './pages/Catalog';
 import ProductReview from './pages/ProductReview';
-import Payments from './pages/Payments';
 import Returns from './pages/Returns';
 import Logistics from './pages/Logistics';
 import Reports from './pages/Reports';
@@ -30,7 +29,6 @@ function Sidebar({ onOpenHelp, onOpenLogout }) {
     { name: 'Warehouses', path: '/warehouses' },
     { name: 'Orders', path: '/orders' },
     { name: 'Catalog', path: '/catalog' },
-    { name: 'Payments', path: '/payments' },
     { name: 'Returns & Disputes', path: '/returns' },
     { name: 'Logistics', path: '/logistics' },
     { name: 'Reports', path: '/reports' },
