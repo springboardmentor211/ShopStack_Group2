@@ -124,7 +124,6 @@ public class PackupService {
         packingRepository.save(packing);
 
         orderFulfillmentPort.advanceStatus(warehouseId, orderId, OrderStatus.PACKED, OrderStatus.SHIPPED);
-        logOrderMovement(warehouseId, orderId, "Ship", orderId + " · " + PACK_STAGING, carrier.trim());
         return ActionResultDto.shipped(OrderStatus.SHIPPED.wireValue(), packing.getTrackingId());
     }
 

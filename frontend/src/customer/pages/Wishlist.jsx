@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import WishlistButton from "../components/WishlistButton";
-import { getProductById, formatPrice } from "../../shared/data/products";
+import { formatPrice } from "../../shared/format";
 import { addToCart } from "../../store/cartSlice";
 import { removeFromWishlist } from "../../store/wishlistSlice";
 
@@ -11,13 +11,16 @@ const Wishlist = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const wishlistIds = useSelector((state) => state.wishlist.ids);
+  const products = useSelector((state) => state.products.items);
+  const wishlistStatus = useSelector((state) => state.wishlist.status);
 
   const wishlistProducts = wishlistIds
-    .map((id) => getProductById(id))
+    .map((id) => products.find((product) => product.id === id))
     .filter(Boolean);
 
-  const moveToCart = (id) => {
-    dispatch(addToCart({ id, quantity: 1 }));
+  const moveToCart = async (id) => {
+    const result = await dispatch(addToCart({ id, quantity: 1 }));
+    if (addToCart.rejected.match(result)) return;
     dispatch(removeFromWishlist(id));
   };
 
@@ -108,7 +111,7 @@ const Wishlist = () => {
                 color: "#211f1b",
               }}
             >
-              Your wishlist is empty
+              {wishlistStatus === "idle" ? "Loading your wishlist..." : "Your wishlist is empty"}
             </h2>
             <p style={{ margin: "0 0 22px", fontSize: "14px" }}>
               Tap the heart on any product to save it here.
@@ -175,7 +178,8 @@ const Wishlist = () => {
                       }}
                     />
 
-                    <div
+                    {product.discount && (
+<div
                       style={{
                         position: "absolute",
                         top: "11px",
@@ -191,6 +195,7 @@ const Wishlist = () => {
                     >
                       {product.discount}
                     </div>
+)}
 
                     <WishlistButton productId={product.id} />
                   </div>
@@ -208,7 +213,8 @@ const Wishlist = () => {
                       {product.name}
                     </h3>
 
-                    <div
+                    {product.rating && (
+<div
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -237,6 +243,7 @@ const Wishlist = () => {
                         ({product.reviews})
                       </span>
                     </div>
+)}
 
                     <div
                       style={{
@@ -256,7 +263,8 @@ const Wishlist = () => {
                       >
                         {formatPrice(product.price)}
                       </span>
-                      <span
+                      {product.oldPrice && (
+<span
                         style={{
                           fontSize: "13px",
                           color: "#9b9287",
@@ -265,6 +273,7 @@ const Wishlist = () => {
                       >
                         {formatPrice(product.oldPrice)}
                       </span>
+)}
                     </div>
 
                     <div style={{ display: "flex", gap: "10px" }}>

@@ -18,10 +18,22 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private static final String BEARER = "Bearer ";
 
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtil;
 
-    public JwtFilter(JwtUtil jwtUtil) {
+    public JwtFilter(JwtUtils jwtUtil) {
         this.jwtUtil = jwtUtil;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
+        }
+        return !path.equals("/api/auth/me")
+            && !path.equals("/api/warehouses")
+            && !path.startsWith("/api/warehouses/");
     }
 
     @Override
@@ -50,8 +62,8 @@ public class JwtFilter extends OncePerRequestFilter {
         if (subject == null || subject.isBlank()) {
             return;
         }
-        String warehouseId = claims.get(JwtUtil.CLAIM_WAREHOUSE_ID, String.class);
-        String role = claims.get(JwtUtil.CLAIM_ROLE, String.class);
+        String warehouseId = claims.get(JwtUtils.CLAIM_WAREHOUSE_ID, String.class);
+        String role = claims.get(JwtUtils.CLAIM_ROLE, String.class);
 
         var token = new JwtAuthenticationToken(subject, warehouseId, role,
                 JwtAuthenticationToken.authoritiesFor(role));

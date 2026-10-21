@@ -1,8 +1,13 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { formatPrice } from "../../shared/format";
+import WishlistButton from "../components/WishlistButton";
+import AddToCartButton from "../components/AddToCartButton";
 const Home = () => {
   const navigate = useNavigate();
+  const products = useSelector((state) => state.products.items);
   return (
     <div
       style={{
@@ -1040,74 +1045,7 @@ const Home = () => {
       gap: "18px",
     }}
   >
-    {[
-      {
-        id: "premium-smartphone",
-        name: "Premium Smartphone",
-        image:
-          "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
-        rating: "4.5",
-        reviews: "230",
-        price: "₹49,999",
-        oldPrice: "₹59,999",
-        discount: "17% OFF",
-      },
-      {
-        id: "slim-performance-laptop",
-        name: "Slim Performance Laptop",
-        image:
-          "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80",
-        rating: "4.7",
-        reviews: "189",
-        price: "₹64,999",
-        oldPrice: "₹74,999",
-        discount: "13% OFF",
-      },
-      {
-        id: "wireless-headphones",
-        name: "Wireless Headphones",
-        image:
-          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
-        rating: "4.8",
-        reviews: "316",
-        price: "₹2,499",
-        oldPrice: "₹3,499",
-        discount: "29% OFF",
-      },
-      {
-        id: "smart-fitness-watch",
-        name: "Smart Fitness Watch",
-        image:
-          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80",
-        rating: "4.6",
-        reviews: "173",
-        price: "₹3,999",
-        oldPrice: "₹5,999",
-        discount: "33% OFF",
-      },
-      {
-        id: "everyday-travel-backpack",
-        name: "Everyday Travel Backpack",
-        image:
-          "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80",
-        rating: "4.7",
-        reviews: "102",
-        price: "₹1,499",
-        oldPrice: "₹2,199",
-        discount: "32% OFF",
-      },
-      {
-        id: "classic-everyday-style",
-        name: "Classic Everyday Style",
-        image:
-          "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-        rating: "4.5",
-        reviews: "158",
-        price: "₹1,999",
-        oldPrice: "₹2,999",
-        discount: "33% OFF",
-      },
-    ].map((product) => (
+    {products.slice(0, 6).map((product) => (
       <div
         key={product.name}
         style={{
@@ -1139,8 +1077,11 @@ const Home = () => {
             }}
           />
 
+          <WishlistButton productId={product.id} />
+
           {/* DISCOUNT BADGE */}
-          <div
+          {product.discount && (
+<div
             style={{
               position: "absolute",
               top: "13px",
@@ -1156,6 +1097,7 @@ const Home = () => {
           >
             {product.discount}
           </div>
+)}
         </div>
 
         {/* PRODUCT DETAILS */}
@@ -1178,7 +1120,8 @@ const Home = () => {
           </h3>
 
           {/* RATING */}
-          <div
+          {product.rating && (
+<div
             style={{
               display: "flex",
               alignItems: "center",
@@ -1213,6 +1156,7 @@ const Home = () => {
               ({product.reviews})
             </span>
           </div>
+)}
 
           {/* PRICE */}
           <div
@@ -1231,20 +1175,23 @@ const Home = () => {
                 color: "#211f1b",
               }}
             >
-              {product.price}
+              {formatPrice(product.price)}
             </span>
 
-            <span
+            {product.oldPrice && (
+<span
               style={{
                 fontSize: "13px",
                 color: "#9b9287",
                 textDecoration: "line-through",
               }}
             >
-              {product.oldPrice}
+              {formatPrice(product.oldPrice)}
             </span>
+)}
 
-            <span
+            {product.discount && (
+<span
               style={{
                 fontSize: "13px",
                 color: "#b58243",
@@ -1253,14 +1200,16 @@ const Home = () => {
             >
               {product.discount}
             </span>
+)}
           </div>
 
           {/* VIEW PRODUCT BUTTON */}
-          <button
+          <div style={{ display: "flex", gap: "10px" }}>
+<button
             type="button"
             onClick={() => navigate(`/products/${product.id}`)}
             style={{
-              width: "100%",
+              flex: 1,
               height: "42px",
               border: "none",
               borderRadius: "8px",
@@ -1273,6 +1222,8 @@ const Home = () => {
           >
             View Product
           </button>
+<AddToCartButton productId={product.id} />
+</div>
         </div>
       </div>
     ))}

@@ -1,17 +1,33 @@
 import { setAuthTokenGetter } from './http';
-import { API_BASE_URL, USE_MOCK } from './config';
+import { API_BASE_URL } from './config';
+import { getWarehouseSession, setWarehouseSession } from './warehouseSession';
 
 let token = null;
 
-export async function initDevAuth() {
-  if (USE_MOCK) return;
+export async function initDevAuth(warehouseId = 'WH-NORTH') {
+  const session = getWarehouseSession();
+  if (session?.token && session.token !== 'mock-session') {
+    setAuthTokenGetter(() => session.token);
+    return true;
+  }
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/dev-token?warehouseId=WH-NORTH`, { method: 'POST' });
-    if (!res.ok) return;
+    const res = await fetch(`${API_BASE_URL}/api/auth/dev-token?warehouseId=${encodeURIComponent(warehouseId)}`, { method: 'POST' });
+    if (!res.ok) return false;
     const data = await res.json();
     token = data.accessToken;
     setAuthTokenGetter(() => token);
+    return true;
   } catch {
-    return;
+    return false;
   }
+}
+
+export function startWarehouseSession(data) {
+  setWarehouseSession({
+    token: data.token,
+    warehouseId: data.warehouseId,
+    name: data.name,
+    email: data.email,
+  });
+  setAuthTokenGetter(() => data.token);
 }

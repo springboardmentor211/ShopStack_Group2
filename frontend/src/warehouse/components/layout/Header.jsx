@@ -70,6 +70,7 @@ export default function Header({ warehouse, onOpenSidebar }) {
           <button
             type="button"
             onClick={onOpenSidebar}
+            aria-label="Open menu"
             className="rounded-xl border border-[#E8DFC8] bg-white p-2.5 text-[#8F6739] lg:hidden"
           >
             <Menu className="h-4 w-4" />
@@ -88,6 +89,7 @@ export default function Header({ warehouse, onOpenSidebar }) {
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="SKU or product lookup"
+              aria-label="Search SKU or product"
               className="w-full rounded-full border border-[#E8DFC8] bg-white py-2.5 pl-9 pr-4 text-sm text-[#1A1A1A] focus:border-[#8F6739] focus:outline-none focus:ring-2 focus:ring-[#8F6739]/30"
             />
           </div>
@@ -101,6 +103,7 @@ export default function Header({ warehouse, onOpenSidebar }) {
                 setNotifOpen((v) => !v);
                 setAccountOpen(false);
               }}
+              aria-label="Notifications"
               className="rounded-full border border-[#E8DFC8] bg-white p-2.5 text-[#8F6739] shadow-sm"
             >
               <Bell className="h-4 w-4" />
@@ -140,6 +143,7 @@ export default function Header({ warehouse, onOpenSidebar }) {
                 setAccountOpen((v) => !v);
                 setNotifOpen(false);
               }}
+              aria-label="Account"
               className="rounded-full bg-[#8F6739] p-2.5 text-white shadow-sm"
             >
               <User className="h-4 w-4" />

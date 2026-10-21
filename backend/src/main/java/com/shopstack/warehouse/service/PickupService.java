@@ -173,7 +173,7 @@ public class PickupService {
                     .sku(row.getSku())
                     .type(MOVEMENT_TYPE)
                     .fromLoc(stock.getBin())
-                    .toLoc(orderId + " · " + PACK_STAGING)
+                    .toLoc(PACK_STAGING)
                     .qty(row.getQty())
                     .performedBy(performedBy)
                     .at(Instant.now())
