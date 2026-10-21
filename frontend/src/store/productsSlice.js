@@ -16,7 +16,7 @@ export const loadProducts = createAsyncThunk(
 
 const productsSlice = createSlice({
   name: "products",
-  initialState: { items: [], status: "idle", error: null },
+  initialState: { items: [], status: "idle", error: null, source: null },
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -25,12 +25,14 @@ const productsSlice = createSlice({
         state.error = null;
       })
       .addCase(loadProducts.fulfilled, (state, action) => {
-        state.items = action.payload;
+        state.items = action.payload.items;
+        state.source = action.payload.source;
         state.status = "succeeded";
       })
       .addCase(loadProducts.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Could not load products.";
+        state.source = null;
       });
   },
 });

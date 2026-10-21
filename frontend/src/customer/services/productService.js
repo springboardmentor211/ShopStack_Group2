@@ -1,5 +1,6 @@
 import api from "../../shared/api/client";
 import { PLACEHOLDER_IMAGE } from "../../shared/productUtils";
+import fallbackProducts from "../../shared/data/products";
 
 const toNumber = (value) => (value == null ? null : Number(value));
 
@@ -29,7 +30,14 @@ export const toProduct = (p) => {
 
 // GET /products (public)
 export const fetchProducts = async () => {
-  const { data } = await api.get("/products");
-  const list = Array.isArray(data) ? data : data?.content || [];
-  return list.filter((p) => p.active !== false).map(toProduct);
+  try {
+    const { data } = await api.get("/products");
+    const list = Array.isArray(data) ? data : data?.content || [];
+    return {
+      items: list.filter((p) => p.active !== false).map(toProduct),
+      source: "api",
+    };
+  } catch {
+    return { items: fallbackProducts, source: "demo" };
+  }
 };

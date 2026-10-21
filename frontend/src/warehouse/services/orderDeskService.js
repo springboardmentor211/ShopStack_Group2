@@ -1,3 +1,6 @@
+import { apiRequest } from './http.js'
+import { initDevAuth } from './devAuth.js'
+
 const sampleOrders = [
   {
     id: 'ord-78421', orderNumber: 'S360-ORD-78421', status: 'PENDING', placedAt: '10:12',
@@ -66,9 +69,69 @@ const normalizeOrders = (orders) =>
     }),
   }))
 
-export async function getWarehouseOrders() {
-  if (savedOrders) return normalizeOrders(copy(savedOrders))
-  return copy(sampleOrders)
+function toOrder(detail) {
+  const placedAt = detail.placedAt ? new Date(detail.placedAt).toLocaleString() : ''
+  return {
+    id: detail.orderId,
+    orderNumber: detail.orderId,
+    status: String(detail.status).toUpperCase(),
+    placedAt,
+    warehouse: detail.warehouseId === 'WH-NORTH' ? 'North Hub' : detail.warehouseId,
+    deliveryDate: detail.deliveryDate,
+    paymentStatus: 'Pending verification',
+    customer: {
+      name: detail.customer?.name || 'Customer',
+      city: detail.customer?.city || '',
+      address: detail.customer?.addressLine || '',
+      phone: detail.customer?.phone || '',
+    },
+    items: (detail.items || []).map((item) => ({
+      sku: item.sku,
+      name: item.productName,
+      variant: 'Standard',
+      image: '',
+      tint: '#f1f0ec',
+      bin: item.binLocation || 'Unassigned',
+      quantity: item.qty,
+      stock: item.stockOnHand ?? 0,
+      vendorName: 'ShopStack',
+    })),
+  }
+}
+
+async function getLiveOrders(warehouseId) {
+  if (!await initDevAuth(warehouseId)) return []
+  const encodedWarehouseId = encodeURIComponent(warehouseId)
+  const summaries = await apiRequest(`/api/warehouses/${encodedWarehouseId}/orders?page=0&pageSize=100`)
+  return Promise.all(summaries.map(async ({ orderId }) => {
+    const encodedOrderId = encodeURIComponent(orderId)
+    const detail = await apiRequest(`/api/warehouses/${encodedWarehouseId}/orders/${encodedOrderId}`)
+    return toOrder(detail)
+  }))
+}
+
+export async function getWarehouseOrders(warehouseId = 'WH-NORTH') {
+  let liveOrders = []
+  try {
+    liveOrders = await getLiveOrders(warehouseId)
+  } catch {
+    // Keep the order desk usable with its demo queue when the API is unavailable.
+  }
+
+  let placedOrders = []
+  try {
+    const storedOrders = JSON.parse(localStorage.getItem('shopstack_demo_orders') || '[]')
+    if (Array.isArray(storedOrders)) placedOrders = storedOrders
+  } catch {
+    placedOrders = []
+  }
+
+  const demoOrders = savedOrders ? copy(savedOrders) : copy(sampleOrders)
+  const uniqueOrders = new Map()
+  for (const order of [...liveOrders, ...placedOrders, ...demoOrders]) {
+    if (!uniqueOrders.has(order.id)) uniqueOrders.set(order.id, order)
+  }
+  return normalizeOrders([...uniqueOrders.values()])
 }
 
 export function saveWarehouseOrders(orders) {

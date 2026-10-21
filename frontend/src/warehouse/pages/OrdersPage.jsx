@@ -171,7 +171,7 @@ function OrdersPage() {
 						</article> : <div className="detail-empty"><PackageOpen size={34} /><h2>Select an order</h2><p>Choose an order from the queue to review its customer and fulfillment details.</p></div>}
 					</section>
 
-					<footer className="page-footer"><span><Clock3 size={13} />Last synced just now</span><span>Warehouse demo data · Actions stay in this browser</span></footer>
+					<footer className="page-footer"><span><Clock3 size={13} />Live orders sync when the backend is available</span><span>Demo orders and status changes stay in this browser</span></footer>
 				</main>
 			</div>
 

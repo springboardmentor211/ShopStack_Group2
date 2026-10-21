@@ -14,11 +14,16 @@ import com.shopstack.order.entity.OrderStatus;
 import com.shopstack.order.repository.OrderRepository;
 import com.shopstack.product.entity.Product;
 import com.shopstack.product.repository.ProductRepository;
+import com.shopstack.warehouse.dev.DevOrder;
+import com.shopstack.warehouse.dev.DevOrderItem;
+import com.shopstack.warehouse.dev.DevOrderItemRepository;
+import com.shopstack.warehouse.dev.DevOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,11 +31,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderService {
 
+    private static final String DEFAULT_WAREHOUSE_ID = "WH-NORTH";
+
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
+    private final DevOrderRepository warehouseOrderRepository;
+    private final DevOrderItemRepository warehouseOrderItemRepository;
 
     // Checkout and place order from cart
     @Transactional
@@ -76,6 +85,7 @@ public class OrderService {
 
         order.setItems(orderItems);
         Order savedOrder = orderRepository.save(order);
+        createWarehouseOrder(savedOrder);
 
         // Clear cart after placing order
         cartItemRepository.deleteAll(cart.getItems());
@@ -84,6 +94,33 @@ public class OrderService {
         cartRepository.save(cart);
 
         return mapToOrderResponse(savedOrder);
+    }
+
+    private void createWarehouseOrder(Order order) {
+        String warehouseOrderId = "ORD-" + order.getId();
+        Customer customer = order.getCustomer();
+
+        warehouseOrderRepository.save(DevOrder.builder()
+                .id(warehouseOrderId)
+                .warehouseId(DEFAULT_WAREHOUSE_ID)
+                .status(com.shopstack.common.enums.OrderStatus.PENDING.wireValue())
+                .placedAt(Instant.now())
+                .customerName(customer.getName())
+                .customerPhone(customer.getPhone())
+                .addressLine(order.getShippingAddress())
+                .city(customer.getCity())
+                .build());
+
+        List<DevOrderItem> warehouseItems = order.getItems().stream()
+            .map(item -> DevOrderItem.builder()
+                        .orderId(warehouseOrderId)
+                        .itemId("ITEM-" + item.getId())
+                        .sku("PRD-" + item.getProduct().getId())
+                        .productName(item.getProduct().getName())
+                        .qty(item.getQuantity())
+                        .build())
+            .toList();
+        warehouseOrderItemRepository.saveAll(warehouseItems);
     }
 
     // Get order details by order ID

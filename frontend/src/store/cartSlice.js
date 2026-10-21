@@ -16,12 +16,14 @@ export const loadCart = makeThunk("cart/load", (customerId) => fetchCart(custome
 export const addToCart = makeThunk(
   "cart/add",
   (customerId, { id, quantity = 1 }, getState) => {
-    const existing = getState().cart.items.find((item) => item.id === id);
+    const state = getState();
+    const existing = state.cart.items.find((item) => String(item.id) === String(id));
     const allowed = MAX_QUANTITY - (existing ? existing.quantity : 0);
     if (allowed <= 0) {
       throw new Error(`You can add at most ${MAX_QUANTITY} of one item.`);
     }
-    return addCartItem(customerId, id, Math.min(quantity, allowed));
+    const product = state.products.items.find((item) => String(item.id) === String(id));
+    return addCartItem(customerId, id, Math.min(quantity, allowed), product);
   }
 );
 

@@ -10,6 +10,7 @@ const Products = () => {
   const products = useSelector((state) => state.products.items);
   const productsStatus = useSelector((state) => state.products.status);
   const productsError = useSelector((state) => state.products.error);
+  const productsSource = useSelector((state) => state.products.source);
   const [searchParams] = useSearchParams();
   const selectedCategory = searchParams.get("category");
 
@@ -103,6 +104,24 @@ const Products = () => {
           {description}
         </p>
       </div>
+
+      {productsSource === "demo" && (
+        <p
+          role="status"
+          style={{
+            maxWidth: "1400px",
+            margin: "0 auto 20px",
+            padding: "12px 16px",
+            border: "1px solid #e5d9c9",
+            borderRadius: "8px",
+            backgroundColor: "#fff4dc",
+            color: "#73521e",
+            fontSize: "13px",
+          }}
+        >
+          Showing sample products because the product service is unavailable.
+        </p>
+      )}
 
       {filteredProducts.length === 0 ? (
         <div

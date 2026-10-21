@@ -13,16 +13,26 @@ export function useOrderDesk() {
   const ordersRef = useRef([])
 
   useEffect(() => {
+    if (!warehouseId) return undefined
     let alive = true
-    getWarehouseOrders().then((loaded) => {
-      if (!alive) return
-      ordersRef.current = loaded
-      setOrders(loaded)
-    })
+    const loadOrders = () => {
+      getWarehouseOrders(warehouseId).then((loaded) => {
+        if (!alive) return
+        ordersRef.current = loaded
+        setOrders(loaded)
+      })
+    }
+    const handleStorage = (event) => {
+      if (event.key === 'shopstack_demo_orders') loadOrders()
+    }
+
+    loadOrders()
+    window.addEventListener('storage', handleStorage)
     return () => {
       alive = false
+      window.removeEventListener('storage', handleStorage)
     }
-  }, [])
+  }, [warehouseId])
 
   useEffect(() => {
     if (!warehouseId || orders.length === 0) return

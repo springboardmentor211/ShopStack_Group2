@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import OrderSummary, { getCartDetails } from "../components/OrderSummary";
 import { loadCart } from "../../store/cartSlice";
 import { formatPrice } from "../../shared/format";
-import { getCustomerId } from "../services/authService";
+import { getCustomerId, getUser } from "../services/authService";
 import { createOrder, createPayment, processPayment } from "../services/orderService";
 import { getErrorMessage } from "../../shared/api/client";
 import {
@@ -46,7 +46,14 @@ const Payment = () => {
       let order = pendingOrder;
       if (!order) {
         const { address, city, pin } = location.state;
-        order = await createOrder(getCustomerId(), `${address}, ${city} ${pin}`);
+        order = await createOrder(
+          getCustomerId(),
+          `${address}, ${city} ${pin}`,
+          items,
+          total,
+          { name: getUser()?.name, city },
+          chosen.api
+        );
         setPendingOrder(order);
         dispatch(loadCart());
       }
