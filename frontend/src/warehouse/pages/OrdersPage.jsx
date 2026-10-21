@@ -6,9 +6,6 @@ import {
 	Search, Send, X,
 } from 'lucide-react'
 import { useOrderDesk } from '../hooks/useOrderDesk.js'
-import { useOrderDesk } from '../hooks/useOrderDesk.js'
-import '../styles/OrdersPage.css'
-
 import '../styles/OrdersPage.css'
 const statuses = [
 	{ id: 'ALL', label: 'All' },
