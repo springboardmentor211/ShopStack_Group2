@@ -4,16 +4,19 @@ import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OrderSummary, { getCartDetails } from "../components/OrderSummary";
-import { clearCart } from "../../store/cartSlice";
-import { formatPrice } from "../../shared/data/products";
+import { loadCart } from "../../store/cartSlice";
+import { formatPrice } from "../../shared/format";
+import { getCustomerId, getUser } from "../services/authService";
+import { createOrder, createPayment, processPayment } from "../services/orderService";
+import { getErrorMessage } from "../../shared/api/client";
 import {
-  page, card, title, sectionTitle, goldButton, darkButton, backButton,
+  page, card, title, sectionTitle, goldButton, darkButton, backButton, errorText,
 } from "../../shared/ui";
 
 const METHODS = [
-  { value: "upi", name: "UPI / Wallet", text: "Pay securely with your preferred UPI app." },
-  { value: "card", name: "Credit or Debit Card", text: "Demo card payment option." },
-  { value: "cod", name: "Cash on Delivery", text: "Pay when your order arrives." },
+  { value: "upi", api: "UPI", name: "UPI / Wallet", text: "Pay securely with your preferred UPI app." },
+  { value: "card", api: "CREDIT_CARD", name: "Credit or Debit Card", text: "Demo card payment option." },
+  { value: "cod", api: "CASH_ON_DELIVERY", name: "Cash on Delivery", text: "Pay when your order arrives." },
 ];
 
 const Payment = () => {
@@ -21,19 +24,71 @@ const Payment = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const cartItems = useSelector((state) => state.cart.items);
-  const { items, total } = getCartDetails(cartItems);
+  const products = useSelector((state) => state.products.items);
+  const { items, total } = getCartDetails(cartItems, products);
 
   const [method, setMethod] = useState(location.state?.payment || "upi");
   const [placedOrder, setPlacedOrder] = useState(null);
+  const [pendingOrder, setPendingOrder] = useState(null); // order saved, payment not finished
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   // Opened without going through Checkout (e.g. after a refresh).
   if (!location.state && !placedOrder) return <Navigate to="/checkout" replace />;
 
-  const placeOrder = () => {
-    // Demo only: no real payment or order is created until the backend exists.
-    setPlacedOrder({ id: `SS${Date.now().toString().slice(-8)}`, total });
-    dispatch(clearCart());
+  const placeOrder = async () => {
+    setError("");
+    setSubmitting(true);
+    const chosen = METHODS.find((item) => item.value === method);
+
+    try {
+      // 1. Save the order in the database (this also empties the cart).
+      let order = pendingOrder;
+      if (!order) {
+        const { address, city, pin } = location.state;
+        order = await createOrder(
+          getCustomerId(),
+          `${address}, ${city} ${pin}`,
+          items,
+          total,
+          { name: getUser()?.name, city },
+          chosen.api
+        );
+        setPendingOrder(order);
+        dispatch(loadCart());
+      }
+
+      // 2. Create the payment and, for online methods, complete it.
+      const payment = await createPayment(order.id, chosen.api);
+      if (chosen.api !== "CASH_ON_DELIVERY") {
+        await processPayment(payment.id, true);
+      }
+
+      setPlacedOrder({
+        id: order.orderNumber || `#${order.id}`,
+        total: order.totalAmount ?? total,
+        method: chosen.name,
+      });
+      setPendingOrder(null);
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not complete the payment."));
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const emptyCard = (heading) => (
+    <div style={{ ...card, textAlign: "center", padding: "50px 40px" }}>
+      <h2 style={sectionTitle}>{heading}</h2>
+      <button
+        type="button"
+        onClick={() => navigate("/products")}
+        style={{ ...darkButton, width: "auto", padding: "0 28px" }}
+      >
+        Shop Products
+      </button>
+    </div>
+  );
 
   return (
     <div style={page}>
@@ -48,7 +103,7 @@ const Payment = () => {
                 Thank you for shopping with Shop360.
               </p>
               <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#211f1b" }}>
-                Order {placedOrder.id} · {formatPrice(placedOrder.total)}
+                Order {placedOrder.id} · {formatPrice(placedOrder.total)} · {placedOrder.method}
               </p>
               <button
                 type="button"
@@ -58,17 +113,8 @@ const Payment = () => {
                 Continue Shopping
               </button>
             </div>
-          ) : items.length === 0 ? (
-            <div style={{ ...card, textAlign: "center", padding: "50px 40px" }}>
-              <h2 style={sectionTitle}>Your cart is empty</h2>
-              <button
-                type="button"
-                onClick={() => navigate("/products")}
-                style={{ ...darkButton, width: "auto", padding: "0 28px" }}
-              >
-                Shop Products
-              </button>
-            </div>
+          ) : items.length === 0 && !pendingOrder ? (
+            emptyCard("Your cart is empty")
           ) : (
             <>
               <button type="button" onClick={() => navigate("/checkout")} style={backButton}>
@@ -108,12 +154,23 @@ const Payment = () => {
                   </label>
                 ))}
 
-                <button type="button" onClick={placeOrder} style={{ ...goldButton, marginTop: "22px" }}>
-                  Pay Securely &amp; Place Order
+                {error && <p style={{ ...errorText, marginTop: "14px" }}>{error}</p>}
+
+                <button
+                  type="button"
+                  onClick={placeOrder}
+                  disabled={submitting}
+                  style={{ ...goldButton, marginTop: "22px", opacity: submitting ? 0.7 : 1 }}
+                >
+                  {submitting
+                    ? "Processing..."
+                    : pendingOrder
+                    ? "Retry Payment"
+                    : "Pay Securely & Place Order"}
                 </button>
               </div>
 
-              <OrderSummary items={items} total={total} />
+              {!pendingOrder && <OrderSummary items={items} total={total} />}
             </>
           )}
         </div>

@@ -16,5 +16,5 @@ export async function getCurrentWarehouseProfile() {
     };
   }
 
-  return apiRequest('/api/auth/me');
+  return apiRequest('/api/warehouses/me');
 }

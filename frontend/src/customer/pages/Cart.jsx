@@ -2,29 +2,32 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getProductById, formatPrice } from "../../shared/data/products";
+import { formatPrice } from "../../shared/format";
+import { resolveProduct } from "../../shared/productUtils";
 import {
   setQuantity,
   removeFromCart,
   clearCart,
   MAX_QUANTITY,
 } from "../../store/cartSlice";
-import { toggleWishlist } from "../../store/wishlistSlice";
+import { addToWishlist } from "../../store/wishlistSlice";
 
 const Cart = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistIds = useSelector((state) => state.wishlist.ids);
+  const products = useSelector((state) => state.products.items);
+  const cartStatus = useSelector((state) => state.cart.status);
 
   // Join cart entries with the full product details.
   const items = cartItems
-    .map((entry) => ({ ...entry, product: getProductById(entry.id) }))
-    .filter((entry) => entry.product);
+    .map((entry) => ({ ...entry, product: resolveProduct(entry, products) }));
 
   const totalItems = items.reduce((sum, entry) => sum + entry.quantity, 0);
   const mrpTotal = items.reduce(
-    (sum, entry) => sum + entry.product.oldPrice * entry.quantity,
+    (sum, entry) =>
+      sum + (entry.product.oldPrice ?? entry.product.price) * entry.quantity,
     0
   );
   const total = items.reduce(
@@ -33,8 +36,11 @@ const Cart = () => {
   );
   const savings = mrpTotal - total;
 
-  const moveToWishlist = (id) => {
-    if (!wishlistIds.includes(id)) dispatch(toggleWishlist(id));
+  const moveToWishlist = async (id) => {
+    if (!wishlistIds.includes(id)) {
+      const result = await dispatch(addToWishlist(id));
+      if (addToWishlist.rejected.match(result)) return;
+    }
     dispatch(removeFromCart(id));
   };
 
@@ -135,7 +141,9 @@ const Cart = () => {
                 color: "#211f1b",
               }}
             >
-              Your cart is empty
+              {cartStatus === "idle" || cartStatus === "loading"
+                ? "Loading your cart..."
+                : "Your cart is empty"}
             </h2>
             <p style={{ margin: "0 0 22px", fontSize: "14px" }}>
               Browse our products and add something you like.
@@ -245,7 +253,8 @@ const Cart = () => {
                       <span style={{ fontSize: "14px", color: "#211f1b" }}>
                         {formatPrice(product.price)} each
                       </span>
-                      <span
+                      {product.oldPrice && (
+<span
                         style={{
                           fontSize: "13px",
                           color: "#9b9287",
@@ -254,7 +263,9 @@ const Cart = () => {
                       >
                         {formatPrice(product.oldPrice)}
                       </span>
-                      <span
+)}
+                      {product.discount && (
+<span
                         style={{
                           fontSize: "13px",
                           color: "#b58243",
@@ -263,6 +274,7 @@ const Cart = () => {
                       >
                         {product.discount}
                       </span>
+)}
                     </div>
 
                     <div
@@ -382,7 +394,9 @@ const Cart = () => {
 
               {[
                 [`Price (${totalItems} ${totalItems === 1 ? "item" : "items"})`, formatPrice(mrpTotal), "#211f1b"],
-                ["Discount", `− ${formatPrice(savings)}`, "#b58243"],
+                ...(savings > 0
+                  ? [["Discount", `− ${formatPrice(savings)}`, "#b58243"]]
+                  : []),
               ].map(([label, value, color]) => (
                 <div
                   key={label}

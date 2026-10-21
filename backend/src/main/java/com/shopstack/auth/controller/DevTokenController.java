@@ -1,6 +1,6 @@
 package com.shopstack.auth.controller;
 
-import com.shopstack.security.jwt.JwtUtil;
+import com.shopstack.security.jwt.JwtUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +23,9 @@ import java.util.Map;
 @ConditionalOnProperty(name = "app.jwt.dev-token-endpoint-enabled", havingValue = "true")
 public class DevTokenController {
 
-    private final JwtUtil jwtUtil;
+    private final JwtUtils jwtUtil;
 
-    public DevTokenController(JwtUtil jwtUtil) {
+    public DevTokenController(JwtUtils jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
@@ -34,8 +34,8 @@ public class DevTokenController {
                                         @RequestParam(defaultValue = "WAREHOUSE_STAFF") String role,
                                         @RequestParam(defaultValue = "dev@shopstack.local") String subject) {
         Map<String, String> claims = new HashMap<>();
-        claims.put(JwtUtil.CLAIM_WAREHOUSE_ID, warehouseId);
-        claims.put(JwtUtil.CLAIM_ROLE, role);
+        claims.put(JwtUtils.CLAIM_WAREHOUSE_ID, warehouseId);
+        claims.put(JwtUtils.CLAIM_ROLE, role);
 
         String token = jwtUtil.generate(subject, claims);
 

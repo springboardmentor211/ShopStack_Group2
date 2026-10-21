@@ -1,93 +1,124 @@
-// Login/signup storage. Right now accounts and the logged-in user are only
-// saved in the browser (localStorage). When the backend is ready, replace the
-// bodies of these functions with Axios calls (e.g. POST /api/auth/register and
-// POST /api/auth/login) and keep the same names, so the pages do not change.
-const USER_KEY = "shopstack_user";
-const ACCOUNTS_KEY = "shopstack_accounts";
+import api, { getErrorMessage } from "../../shared/api/client";
+import { getSession, setSession, clearSession } from "../../shared/api/session";
+import { startWarehouseSession } from "../../warehouse/services/devAuth";
+import { USE_MOCK } from "../../warehouse/services/config";
 
-const read = (key, fallback) => {
+const DEMO_ACCOUNTS_KEY = "shopstack_demo_accounts";
+
+const getDemoAccounts = () => {
   try {
-    const value = JSON.parse(localStorage.getItem(key));
-    return value ?? fallback;
+    const accounts = JSON.parse(localStorage.getItem(DEMO_ACCOUNTS_KEY) || "[]");
+    return Array.isArray(accounts) ? accounts : [];
   } catch {
-    return fallback;
+    return [];
   }
 };
 
-const write = (key, value) => {
+const hashDemoPassword = async (password, salt) => {
+  const input = new TextEncoder().encode(`${salt}:${password}`);
+  const digest = await crypto.subtle.digest("SHA-256", input);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+// ---- session (who is logged in) ----
+export const getUser = () => getSession();
+
+export const isLoggedIn = () => {
+  const session = getSession();
+  return Boolean(session?.token && session?.customerId);
+};
+
+export const getCustomerId = () => getSession()?.customerId;
+
+export const logout = () => clearSession();
+
+// ---- API calls ----
+// POST /auth/register. Returns { ok: true } or { ok: false, error, message }.
+// The person is NOT logged in after registering; they sign in next.
+export const registerAccount = async ({ name, email, password }) => {
+  if (USE_MOCK) {
+    const accounts = getDemoAccounts();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (accounts.some((account) => account.email === normalizedEmail)) {
+      return {
+        ok: false,
+        error: "exists",
+        message: "An account with this email already exists. Please sign in.",
+      };
+    }
+
+    try {
+      const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      accounts.push({
+        customerId: Date.now(),
+        name: name.trim(),
+        email: normalizedEmail,
+        salt,
+        passwordHash: await hashDemoPassword(password, salt),
+      });
+      localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(accounts));
+      return { ok: true };
+    } catch {
+      return { ok: false, error: "failed", message: "Could not save the demo account in this browser." };
+    }
+  }
+
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
+    await api.post("/auth/register", {
+      name: name.trim(),
+      email: email.trim(),
+      password,
+    });
+    return { ok: true };
+  } catch (error) {
+    const message = getErrorMessage(error, "Could not create your account.");
+    return {
+      ok: false,
+      error: /already registered/i.test(message) ? "exists" : "failed",
+      message,
+    };
   }
 };
 
-// ---- logged-in user (session) ----
-export const getUser = () => read(USER_KEY, null);
+// POST /auth/login. Saves the token and customerId.
+export const loginWithPassword = async (email, password) => {
+  if (USE_MOCK) {
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const account = getDemoAccounts().find((item) => item.email === normalizedEmail);
+      if (!account || (await hashDemoPassword(password, account.salt)) !== account.passwordHash) {
+        return { ok: false, message: "Invalid email or password." };
+      }
 
-export const isLoggedIn = () => Boolean(getUser());
+      setSession({
+        token: `demo-${crypto.randomUUID()}`,
+        customerId: account.customerId,
+        name: account.name,
+        email: account.email,
+      });
+      return { ok: true };
+    } catch {
+      return { ok: false, message: "Could not sign in to the demo account." };
+    }
+  }
 
-export const saveUser = (user) => write(USER_KEY, user);
-
-export const logout = () => {
   try {
-    localStorage.removeItem(USER_KEY);
-  } catch {
-    // ignore storage errors
+    const { data } = await api.post("/auth/login", {
+      email: email.trim(),
+      password,
+    });
+    if (data.warehouseId) {
+      startWarehouseSession(data);
+      return { ok: true, role: "warehouse" };
+    }
+    setSession({
+      token: data.token,
+      customerId: data.customerId,
+      name: data.name,
+      email: data.email,
+    });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: getErrorMessage(error, "Could not sign in.") };
   }
-};
-
-// ---- accounts created on the Create account page ----
-const normalizeEmail = (email) => email.trim().toLowerCase();
-
-// Passwords are not stored as plain text (demo only; the backend will do
-// proper hashing later).
-const hashPassword = async (password) => {
-  try {
-    const bytes = new TextEncoder().encode(password);
-    const digest = await crypto.subtle.digest("SHA-256", bytes);
-    return Array.from(new Uint8Array(digest))
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
-  } catch {
-    return `plain:${password}`;
-  }
-};
-
-// Returns { ok: true } or { ok: false, error: "exists" | "storage" }
-export const registerAccount = async ({ name, email, password, type }) => {
-  const accounts = read(ACCOUNTS_KEY, []);
-  const key = normalizeEmail(email);
-
-  if (accounts.some((account) => account.email === key)) {
-    return { ok: false, error: "exists" };
-  }
-
-  accounts.push({
-    name: name.trim(),
-    email: key,
-    type,
-    passwordHash: await hashPassword(password),
-  });
-
-  return write(ACCOUNTS_KEY, accounts)
-    ? { ok: true }
-    : { ok: false, error: "storage" };
-};
-
-// Returns { ok: true, user } or { ok: false, error: "not_found" | "wrong_password" }
-export const loginWithPassword = async (identifier, password) => {
-  const key = normalizeEmail(identifier);
-  const account = read(ACCOUNTS_KEY, []).find((item) => item.email === key);
-
-  if (!account) return { ok: false, error: "not_found" };
-
-  if (account.passwordHash !== (await hashPassword(password))) {
-    return { ok: false, error: "wrong_password" };
-  }
-
-  const user = { name: account.name, email: account.email, type: account.type };
-  saveUser(user);
-  return { ok: true, user };
 };

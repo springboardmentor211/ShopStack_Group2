@@ -1,4 +1,5 @@
 import { API_BASE_URL } from './config';
+import { clearWarehouseSession } from './warehouseSession';
 
 let tokenGetter = () => null;
 let logoutHandler = null;
@@ -13,6 +14,7 @@ export const setLogoutHandler = (handler) => {
 
 export const runLogout = () => {
   tokenGetter = () => null;
+  clearWarehouseSession();
   if (logoutHandler) logoutHandler();
 };
 
@@ -21,6 +23,7 @@ export async function apiRequest(path, options = {}) {
   const headers = { ...(options.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
   const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
   if (response.status === 401) runLogout();
+  if (response.status === 401) window.location.assign('/login');
   if (!response.ok) {
     let message = 'Request failed';
     try {

@@ -1,6 +1,6 @@
 package com.shopstack.security;
 
-import com.shopstack.security.jwt.JwtUtil;
+import com.shopstack.security.jwt.JwtUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -21,12 +21,12 @@ class WarehouseAuthorizationIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtUtils jwtUtil;
 
     private String token(String warehouseId, String role) {
         return "Bearer " + jwtUtil.generate("tester@shopstack.dev", Map.of(
-                JwtUtil.CLAIM_WAREHOUSE_ID, warehouseId,
-                JwtUtil.CLAIM_ROLE, role));
+                JwtUtils.CLAIM_WAREHOUSE_ID, warehouseId,
+                JwtUtils.CLAIM_ROLE, role));
     }
 
     @Test
@@ -45,10 +45,10 @@ class WarehouseAuthorizationIntegrationTest {
 
     @Test
     void tokenSignedWithWrongSecretReturns401() throws Exception {
-        JwtUtil other = new JwtUtil("a-completely-different-secret-of-sufficient-length", 60000);
+        JwtUtils other = new JwtUtils("a-completely-different-secret-of-sufficient-length", 60000);
         String foreign = other.generate("attacker@evil.dev", Map.of(
-                JwtUtil.CLAIM_WAREHOUSE_ID, "WH-NORTH",
-                JwtUtil.CLAIM_ROLE, "WAREHOUSE_STAFF"));
+                JwtUtils.CLAIM_WAREHOUSE_ID, "WH-NORTH",
+                JwtUtils.CLAIM_ROLE, "WAREHOUSE_STAFF"));
 
         mockMvc.perform(get("/api/warehouses/WH-NORTH/inventory")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + foreign))
@@ -57,12 +57,12 @@ class WarehouseAuthorizationIntegrationTest {
 
     @Test
     void expiredTokenReturns401() throws Exception {
-        JwtUtil expired = new JwtUtil(
+        JwtUtils expired = new JwtUtils(
                 System.getProperty("test.jwt.secret",
                         "dev-only-insecure-secret-at-least-32-bytes-long"), -1000);
         String stale = expired.generate("tester@shopstack.dev", Map.of(
-                JwtUtil.CLAIM_WAREHOUSE_ID, "WH-NORTH",
-                JwtUtil.CLAIM_ROLE, "WAREHOUSE_STAFF"));
+                JwtUtils.CLAIM_WAREHOUSE_ID, "WH-NORTH",
+                JwtUtils.CLAIM_ROLE, "WAREHOUSE_STAFF"));
 
         mockMvc.perform(get("/api/warehouses/WH-NORTH/inventory")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + stale))

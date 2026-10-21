@@ -18,7 +18,8 @@ const formatDay = (daysFromNow) =>
 const Checkout = () => {
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
-  const { items, total } = getCartDetails(cartItems);
+  const products = useSelector((state) => state.products.items);
+  const { items, total } = getCartDetails(cartItems, products);
 
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");

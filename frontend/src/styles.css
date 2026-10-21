@@ -1,0 +1,185 @@
+
+
+/* Global defaults */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #fff9f0;
+  color: #2c2925;
+  font-family: "DM Sans", Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* ==================================================
+   LEGACY SHARED HEADER
+   Only applies if these classes are still used.
+   ================================================== */
+
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 88px;
+  padding: 18px 32px;
+  background: #fffdf8;
+  border-bottom: 1px solid #eadfce;
+}
+
+.brand-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+}
+
+.vendor-centre {
+  color: #827b72;
+  font-size: 13px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.shop360-logo {
+  color: #b7894f;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 29px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.store-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* ==================================================
+   LEGACY SIDEBAR
+   Does not style the new .vendor-sidebar.
+   ================================================== */
+
+.page-layout {
+  display: flex;
+  min-height: calc(100vh - 88px);
+}
+
+.sidebar {
+  flex: 0 0 245px;
+  width: 245px;
+  background: #fffdf8;
+  border-right: 1px solid #eadfce;
+}
+
+.sidebar-nav {
+  padding: 30px 18px;
+}
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 48px;
+  margin-bottom: 7px;
+  padding: 0 16px;
+  border-radius: 9px;
+  color: #716961;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  background: #eee8df;
+  color: #292522;
+}
+
+.nav-icon {
+  width: 22px;
+  text-align: center;
+  font-size: 18px;
+}
+
+/* ==================================================
+   SHARED BUTTON
+   Avoid overriding .dark-button.
+   ================================================== */
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ==================================================
+   RESPONSIVE LEGACY LAYOUT
+   ================================================== */
+
+@media (max-width: 900px) {
+  .top-header {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+
+  .sidebar {
+    flex-basis: 200px;
+    width: 200px;
+  }
+}
+
+@media (max-width: 650px) {
+  .top-header {
+    min-height: 72px;
+    padding: 14px 18px;
+  }
+
+  .vendor-centre {
+    display: none;
+  }
+
+  .shop360-logo {
+    font-size: 24px;
+  }
+
+  .store-name {
+    font-size: 14px;
+  }
+
+  .page-layout {
+    min-height: calc(100vh - 72px);
+  }
+
+  .sidebar {
+    flex-basis: 190px;
+    width: 190px;
+  }
+}

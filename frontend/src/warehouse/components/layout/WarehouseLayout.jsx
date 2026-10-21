@@ -7,6 +7,7 @@ import { fetchWarehouseProfile, loadWarehouseData } from '../../store/slices/war
 import { resetWarehouseData } from '../../store/actions';
 import { selectSidebarCounts, selectLatestMovementNumber } from '../../store/selectors/warehouseSelectors';
 import { initSeen, markSeen } from '../../store/slices/seenSlice';
+import { initDevAuth } from '../../services/devAuth';
 import { useCurrentWarehouse } from '../../hooks/useCurrentWarehouse';
 import '../../styles/warehouse.css';
 
@@ -22,7 +23,14 @@ export default function WarehouseLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (status === 'idle') dispatch(fetchWarehouseProfile());
+    if (status !== 'idle') return undefined;
+    let active = true;
+    initDevAuth().then(() => {
+      if (active) dispatch(fetchWarehouseProfile());
+    });
+    return () => {
+      active = false;
+    };
   }, [status, dispatch]);
 
   useEffect(() => {
@@ -63,7 +71,7 @@ export default function WarehouseLayout() {
                 <span>{error}</span>
                 <button
                   type="button"
-                  onClick={() => dispatch(fetchWarehouseProfile())}
+                  onClick={() => initDevAuth().then(() => dispatch(fetchWarehouseProfile()))}
                   className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#B5423B]"
                 >
                   Retry
