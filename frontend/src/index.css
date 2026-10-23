@@ -1,35 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-*,
-*::before,
-*::after {
+:root {
+  font-family: "DM Sans", sans-serif;
+  color: #252821;
+  background: #f5f4f0;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  --ink: #252821;
+  --muted: #7a7c75;
+  --line: #e9e7e0;
+  --paper: #ffffff;
+  --canvas: #f5f4f0;
+  --accent: #9a6838;
+  --accent-dark: #76502c;
+  --accent-soft: #f4ebdf;
+  --green: #397561;
+  --green-soft: #e7f1ec;
+  --red: #bd5a55;
+  --red-soft: #fbebea;
+}
+
+* {
   box-sizing: border-box;
 }
 
-html {
-  width: 100%;
-  min-height: 100%;
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
+  width: 100%;
+  min-height: 100%;
 }
 
 body {
-  width: 100%;
+  min-width: 340px;
   min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  font-family: "DM Sans", sans-serif;
-  background: #fff9f0;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
+  background: #fffdf8;
+  color: #211f1b;
+  font-family: Inter, Arial, sans-serif;
 }
 
 button,
-input,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #d3a56b;
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #ead9c2;
+  color: #252821;
+}
+
 select,
 textarea {
   font-family: inherit;
@@ -37,15 +74,4 @@ textarea {
 
 a {
   text-decoration: none;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-}
-
-#root {
-  min-height: 100vh;
 }
